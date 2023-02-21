@@ -1,0 +1,21 @@
+App(
+    appid="fn_test",
+    name="FN Tester",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="fn_test_app",
+    cdefines=["APP_FN_TEST"],
+    requires=[
+        "gui",
+        "dialogs",
+    ],
+    stack_size=2 * 1024,
+    fap_icon="logo_fn.png",
+    fap_libs=["assets"],
+    fap_description="Tester for Fiscal Memory",
+    fap_author="Igor Danilov",
+    fap_version=(0, 5),
+    order=70,
+    fap_category="Tools",
+    fap_icon_assets="icons"
+)
+
