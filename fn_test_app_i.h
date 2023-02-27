@@ -15,14 +15,24 @@
 #include <gui/modules/widget.h>
 #include <gui/modules/text_input.h>
 
-#define RECORD_STORAGE "storage"
-#define BC_SCANNER_APP_PATH_FOLDER ANY_PATH("bcscanner")
-#define BC_SCANNER_APP_EXTENSION ".bc"
+#include "views/fn_test_view_detect.h"
+
+#include "lib/fn/fn_worker.h"
+
+
+#define TAG "FNTest"
 
 typedef enum {
-    BarCodeAppErrorNoFiles,
-    BarCodeAppErrorCloseRpc,
-} FNAppError;
+    FNModeGetFNInfo,
+    FNModeGetLastDocInfo,
+    FNModeGetRegInfo,
+    FNModeGetSessionInfo,
+    FNModeTestSell,
+    FNModeCloseSession,
+    FNModeFlashMGM,
+    FNModeCloseFN,
+    FNModeUnknown
+} FNAppMode;
 
 struct FNApp {
     Gui* gui;
@@ -35,13 +45,17 @@ struct FNApp {
     Submenu* submenu;
     Popup* popup;
 
-    FNAppError error;
-    FuriString* file_path;
+    FNAppMode mode;
+    FNWorker* worker;
+
+    FNDetectView* view_detect;
 };
 
 typedef enum {
     FNTestViewSubmenu,
     FNTestViewDialogEx,
     FNTestViewPopup,
-    FNTestViewWidget
+    FNTestViewWidget,
+    FNTestViewProgress,
+    FNTestViewDetect
 } FNAppView;

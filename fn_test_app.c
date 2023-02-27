@@ -32,6 +32,7 @@ FNApp* fn_test_app_alloc(void) {
     app->dialogs = furi_record_open(RECORD_DIALOGS);
     app->submenu = submenu_alloc();
     app->widget = widget_alloc();
+    app->view_detect = fn_test_view_detect_alloc();
 
     app->view_dispatcher = view_dispatcher_alloc();
     view_dispatcher_enable_queue(app->view_dispatcher);
@@ -53,6 +54,10 @@ FNApp* fn_test_app_alloc(void) {
      //   app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
     view_dispatcher_add_view(
         app->view_dispatcher, FNTestViewWidget, widget_get_view(app->widget));
+    view_dispatcher_add_view(
+        app->view_dispatcher,
+        FNTestViewDetect,
+        fn_test_view_detect_get_view(app->view_detect));
 
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
@@ -69,11 +74,13 @@ void fn_test_app_free(FNApp* app) {
     //view_dispatcher_remove_view(app->view_dispatcher, SPIMemViewDialogEx);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewPopup);
     view_dispatcher_remove_view(app->view_dispatcher, FNTestViewWidget);
+    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewDetect);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewProgress);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewDetect);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewTextInput);
     submenu_free(app->submenu);
     widget_free(app->widget);
+    fn_test_view_detect_free(app->view_detect);
 
     // Views
     //view_dispatcher_remove_view(app->view_dispatcher, BarCodeAppViewWork);
