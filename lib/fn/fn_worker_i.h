@@ -6,15 +6,12 @@
 #include "fn_worker.h"
 
 typedef enum {
-    SPIMemWorkerModeIdle,
-    SPIMemWorkerModeFNDetect,
-    SPIMemWorkerModeRead,
-    SPIMemWorkerModeSendCMD
+    FNWorkerModeIdle,
+    FNWorkerModeFNDetect
 } FNWorkerMode;
 
 struct FNWorker {
-    SPIMemChip* chip_info;
-    found_chips_t* found_chips;
+    FNInfo* fn_info;
     FNWorkerMode mode_index;
     FNWorkerCallback callback;
     void* cb_ctx;

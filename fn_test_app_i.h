@@ -47,6 +47,7 @@ struct FNApp {
 
     FNAppMode mode;
     FNWorker* worker;
+    //UartProcess
 
     FNDetectView* view_detect;
 };

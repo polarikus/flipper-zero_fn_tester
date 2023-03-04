@@ -7,18 +7,18 @@ App(
     requires=[
         "gui"
     ],
-    stack_size=2 * 1024,
+    stack_size=4 * 1024,
     fap_icon="logo_fn.png",
     fap_libs=["assets"],
     fap_description="Tester for Fiscal Memory",
     fap_author="Igor Danilov",
     order=30,
-    fap_category="Tools",
+    fap_category="GPIO",
     fap_icon_assets="icons",
     fap_private_libs=[
             Lib(
-                name="fn",
-            ),
+                name="fn"
+            )
     ]
 )
 
