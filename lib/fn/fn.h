@@ -1,6 +1,7 @@
 //
 // Created by Игорь Данилов on 23.02.2023.
 //
+#include <furi.h>
 
 typedef struct FNInfo FNInfo;
 

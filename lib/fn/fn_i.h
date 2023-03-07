@@ -5,6 +5,7 @@
 
 #include <furi.h>
 #include "fn.h"
+#include "fn_errors.h"
 /**
  * <a href="http://www.consultant.ru/document/cons_doc_LAW_362322/c7bcefffc3cbf3b1189c0f92e21f7bd930aa5b96/">Версия ФФД</a>
  */
@@ -36,6 +37,7 @@ typedef struct FwVersion {
  * Структура с основной информацией об ФН, необходима для исполнения остальных команд
  */
 struct FNInfo {
+    FNError last_fn_error;
     FN_FFD ffd_enum;
     const char* revision_name;
     const char* serial_number;

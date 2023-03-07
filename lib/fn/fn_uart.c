@@ -106,11 +106,15 @@ UARTApp* fn_uart_app_alloc() {
 
 void fn_uart_start_thread(UARTApp* app)
 {
+    furi_assert(app);
+    furi_assert(app->thread);
     furi_thread_start(app->thread);
 }
 
 void fn_uart_stop_thread(UARTApp* app)
 {
+    furi_assert(app);
+    furi_assert(app->thread);
     furi_thread_flags_set(furi_thread_get_id(app->thread), UARTThreadEventStop);
     FURI_LOG_D(TAG, "WAIT SPND");
     furi_thread_join(app->thread);
