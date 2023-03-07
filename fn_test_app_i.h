@@ -18,6 +18,7 @@
 #include "views/fn_test_view_detect.h"
 
 #include "lib/fn/fn_worker.h"
+#include "lib/fn/fn.h"
 
 
 #define TAG "FNTest"
@@ -48,6 +49,7 @@ struct FNApp {
     FNAppMode mode;
     FNWorker* worker;
     //UartProcess
+    FNInfo* fn_info;
 
     FNDetectView* view_detect;
 };

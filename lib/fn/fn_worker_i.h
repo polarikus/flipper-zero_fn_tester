@@ -4,6 +4,7 @@
 #pragma once
 
 #include "fn_worker.h"
+#include "fn_uart_i.h"
 
 typedef enum {
     FNWorkerModeIdle,
@@ -16,6 +17,8 @@ struct FNWorker {
     FNWorkerCallback callback;
     void* cb_ctx;
     FuriThread* thread;
+    UARTApp* uart;
+    FuriStreamBuffer* stream;
 };
 
 extern const FNWorkerModeType fn_worker_modes[];

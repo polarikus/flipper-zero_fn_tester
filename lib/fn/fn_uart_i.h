@@ -5,6 +5,8 @@
 #pragma once
 
 #include "fn_uart.h"
+#include "fn_worker.h"
+
 
 typedef enum {
     UARTModeIdle,
@@ -21,4 +23,5 @@ struct UARTApp {
     uint32_t timeout;
     UARTState state;
     void (*rx_cmlt_cb)(uint8_t* buf, size_t len, void* context);
+    void* cb_ctx;
 };
