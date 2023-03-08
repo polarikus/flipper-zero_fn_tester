@@ -4,13 +4,16 @@
 
 #pragma once
 #include "fn_errors.h"
-#include "fn.h"
+#include "fn_i.h"
+#include "fn_worker_i.h"
 
 typedef enum {
     FNToolOk,
     FNToolTimeout,
     FNToolWrongCRC,
-    FNToolWrongFNDataLen
+    FNToolWrongFNDataLen,
+    FNToolFnError
 } FNToolCmdStatus;
 
-FNToolCmdStatus get_fn_info(FNError fn_error, FNInfo* fn_info);
+
+FNToolCmdStatus fn_tool_get_fn_info(FNWorker* fn_worker, FNInfo* fnInfo);

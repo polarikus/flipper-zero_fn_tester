@@ -29,7 +29,7 @@ static void fn_uart_irq_cb(UartIrqEvent ev, uint8_t data, void* ctx) {
 }
 
 static void timer_timeout(void* ctx) {
-    furi_assert(ctx);
+    furi_check(ctx);
     UARTProcess* app = ctx;
     FURI_LOG_D(TAG, "TIMEOUT_CB");
     furi_thread_flags_set(app->thread_id, UARTThreadEventRxDone);
@@ -37,7 +37,7 @@ static void timer_timeout(void* ctx) {
 
 static void fn_init_uart(uint32_t baudrate, void (*cb)(UartIrqEvent ev, uint8_t data, void* ctx), void* ctx) {
     FuriHalUartId uart_id = FuriHalUartIdUSART1;
-    furi_assert(baudrate > 0);
+    furi_check(baudrate > 0);
 
 #ifndef APP_DEBUG
     furi_hal_console_disable();
@@ -106,15 +106,15 @@ UARTApp* fn_uart_app_alloc() {
 
 void fn_uart_start_thread(UARTApp* app)
 {
-    furi_assert(app);
-    furi_assert(app->thread);
+    furi_check(app);
+    furi_check(app->thread);
     furi_thread_start(app->thread);
 }
 
 void fn_uart_stop_thread(UARTApp* app)
 {
-    furi_assert(app);
-    furi_assert(app->thread);
+    furi_check(app);
+    furi_check(app->thread);
     furi_thread_flags_set(furi_thread_get_id(app->thread), UARTThreadEventStop);
     FURI_LOG_D(TAG, "WAIT SPND");
     furi_thread_join(app->thread);
@@ -126,18 +126,19 @@ void fn_uart_app_free(UARTApp* app) {
 #ifndef APP_DEBUG
     furi_hal_console_enable();
 #endif
-    furi_assert(app);
-    furi_assert(app->thread);
+    furi_check(app);
+    furi_check(app->thread);
     furi_thread_free(app->thread);
     free(app);
 }
 
 bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t timeout) {
     FURI_LOG_D(TAG, "START TRX");
-    furi_assert(app);
-    furi_assert(tx_buff_size > 0);
-    furi_assert(timeout > 0);
+    furi_check(app);
+    furi_check(tx_buff_size > 0);
+    furi_check(timeout > 0);
     bool result = true;
+    FURI_LOG_D(TAG, "tx_buff[3] = %x", tx_buff[3]);
     if(app->state != UARTModeIdle)
     {
         return false;
@@ -154,8 +155,7 @@ bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t t
 }
 
 void fn_uart_set_rx_callback(UARTApp* app, void (*rx_cb)(uint8_t* buf, size_t len, void* context), void* context) {
-    furi_assert(app);
-    furi_thread_start(app->thread);
+    furi_check(app);
     app->rx_cmlt_cb = rx_cb;
     app->cb_ctx = context;
 }

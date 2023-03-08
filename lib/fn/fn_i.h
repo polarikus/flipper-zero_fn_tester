@@ -42,5 +42,6 @@ struct FNInfo {
     const char* revision_name;
     const char* serial_number;
     FNFwVersion fw_version;
+    bool is_session_open;
 };
 

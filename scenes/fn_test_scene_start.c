@@ -10,7 +10,8 @@ typedef enum {
     FNTestSceneStartSubmenuIndexCloseFN,
     FNTestSceneStartSubmenuIndexFlashMGM,
     FNTestSceneStartSubmenuIndexWiring,
-    FNTestSceneStartSubmenuIndexAbout
+    FNTestSceneStartSubmenuIndexAbout,
+    FNTestSceneStartSubmenuIndexTest
 } FNTestSceneStartSubmenuIndex;
 
 static void fn_test_scene_start_submenu_callback(void* context, uint32_t index) {
@@ -38,6 +39,14 @@ void fn_test_scene_start_on_enter(void* context) {
         FNTestSceneStartSubmenuIndexAbout,
         fn_test_scene_start_submenu_callback,
         app);
+#if APP_FN_DEBUG
+    submenu_add_item(
+        app->submenu,
+        "Test",
+        FNTestSceneStartSubmenuIndexTest,
+        fn_test_scene_start_submenu_callback,
+        app);
+#endif
     submenu_set_selected_item(
         app->submenu, scene_manager_get_scene_state(app->scene_manager, FNAppSceneStart));
     view_dispatcher_switch_to_view(app->view_dispatcher, FNTestViewSubmenu);
@@ -56,6 +65,9 @@ bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
             success = true;
         } else if(event.event == FNTestSceneStartSubmenuIndexFNInfo){
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
+            success = true;
+        } else if(event.event == FNTestSceneStartSubmenuIndexTest){
+            scene_manager_next_scene(app->scene_manager, FNAppSceneTest);
             success = true;
         }
     }
