@@ -33,15 +33,44 @@ typedef struct FwVersion {
     uint8_t fw_mode;
 } FNFwVersion;
 
+typedef struct DateTime {
+    uint8_t year;
+    uint8_t mouth;
+    uint8_t date;
+    uint8_t hour;
+    uint8_t minute;
+} DateTime;
+
+typedef enum {
+    FNStage1 = 1,
+    FNStage2 = 3,
+    FNStage3 = 7,
+    FNStage4 = 15
+} FNState;
+
+typedef enum {
+    FNWarnReplaceNeeded,
+    FNWarnResourceEnd,
+    FNWarnMemoryEnd,
+    FNWarn_OFD_WaitTimeExceeded,
+    FNWarnFailureAccordingToFormatLogicalControlData,
+    FNWarnSetupKKTRequired,
+    FNWarn_OFD_Canceled,
+} FNWarnFlags;
+
 /**
  * Структура с основной информацией об ФН, необходима для исполнения остальных команд
  */
 struct FNInfo {
     FNError last_fn_error;
+    FNState fn_state;
     FN_FFD ffd_enum;
     const char* revision_name;
-    const char* serial_number;
+    char serial_number[18];
     FNFwVersion fw_version;
     bool is_session_open;
+    uint32_t last_doc_number;
+    DateTime date_time;
+    uint8_t fn_warn_flags;
 };
 

@@ -13,8 +13,9 @@ uint16_t calc_crc16(const uint8_t* data, size_t start, size_t end){
     uint16_t crc = 0xffff;
     //furi_assert(start > end);
     if(start > end) furi_crash("calc_crc16: start bit can't be more end bit\r\n");
-    uint8_t* buff = alloca(end - start);
+    uint8_t* buff = malloc(end - start + 1);//TODO Протестировать
     for(int i = 0; i < (int)end; ++i) {
+        FURI_LOG_D("calc_crc16", "data[%d] = %x", start + i, data[start + i]);
         buff[i] = data[start + i];
     }
     while(end-- && end >= start){
@@ -23,6 +24,7 @@ uint16_t calc_crc16(const uint8_t* data, size_t start, size_t end){
             crc = crc& 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
         }
     }
+
     free(buff);
     return (crc << 8 | crc >> 8); //LE format
 };
@@ -33,6 +35,14 @@ bool check_crc(uint16_t crc, const uint8_t* data, size_t shift, size_t len)
     FURI_LOG_D("check_crc()", "crc = %#08x | crc_check = %#08x", crc, crc_check);
     FURI_LOG_D("check_crc()", "data_start = %x | data_end = %x", data[shift], data[len]);
     return crc_check == crc;
+}
+
+void prepend_data_to_array(uint8_t **data, size_t old_size, const uint8_t *new_data, size_t new_size) {
+    uint8_t *new_buffer = malloc(old_size + new_size);
+    memcpy(new_buffer, new_data, new_size);
+    memcpy(new_buffer + new_size, *data, old_size);
+    free(*data);
+    *data = new_buffer;
 }
 
 uint16_t two_uint8t_to_uint16t_LE(const uint8_t bytes[2]){
@@ -48,6 +58,14 @@ uint16_t two_uint8t_to_uint16t_BE(const uint8_t bytes[2]){
 void uint16t_LE_to_uint8t_bytes(uint16_t uint16, uint8_t* bytes){
     bytes[0] = uint16 >> 8;
     bytes[1] = uint16;
+}
+
+uint32_t byte_array_to_uint32t_LE(const uint8_t *byteArray) {
+    uint32_t result = 0;
+    for (int i = 0; i < 4; i++) {
+        result |= ((uint32_t) byteArray[i]) << (8 * i);
+    }
+    return result;
 }
 
 void add_bytes_to_arr(

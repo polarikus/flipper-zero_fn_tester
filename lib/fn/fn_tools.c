@@ -27,7 +27,7 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
     uint8_t* tx = malloc(tx_size);
     tx[0] = 0x04;
     UNUSED(cmd);
-    tx[3] =  0x31;
+    tx[3] =  cmd;
     if(data_len > 0){
         uint8_t tx_data_len[2];
         if(data == NULL) furi_crash("fn_trx() Data must be NULL if data_len > 0!");
@@ -39,12 +39,14 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
     }
     FURI_LOG_D(TAG, "tx[3] = %#08x", tx[3]);
 
-    uint8_t crc[2];
-    crc[0] = 0xDE;
-    crc[1] = 0xDD;
-    //uint16t_LE_to_uint8t_bytes(calc_crc16(tx, 1, tx_size - 2), crc);
+    uint8_t crc[2];// FF CD для 0x30
+    //crc[0] = 0xff;
+    //crc[1] = 0xcd;
+
+    uint16t_LE_to_uint8t_bytes(calc_crc16(tx, 1, tx_size - 2), crc);
     add_bytes_to_arr(tx, 4, tx_size, crc, 2);
-    FURI_LOG_D(TAG, "tx[3] = %#08x", tx[3]);
+    FURI_LOG_D(TAG, "CMD %#08x %#08x %#08x %#08x %#08x %#08x",
+               tx[0], tx[1], tx[2], tx[3], tx[4], tx[5] );
     answer->status = FNToolTimeout;
     answer->data_len = 0;
     answer->data = NULL;
@@ -88,7 +90,7 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
             if(answer->data_len  > 1){
                 answer->data = malloc(rx_data_len - 1);
                 for(uint16_t i = 0; i < rx_data_len - 2; ++i) {
-                    answer->data[0] = rx_buff[i + 3];
+                    answer->data[i] = rx_buff[i + 4];
                 }
             } else {
                 answer->data_len = 0;
@@ -119,13 +121,37 @@ FNToolCmdStatus fn_tool_get_fn_info(FNWorker* fn_worker, FNInfo* fnInfo){
     }
 
     FURI_LOG_D(TAG, "fn_answer->data_len %d", fn_answer->data_len);
-    if(fn_answer->data_len != 17) //TODO Поправить
+    if(fn_answer->data_len != 31)
     {
         status = FNToolWrongFNDataLen;
         return status;
     }
 
+    for(int i = 0; i < 31; ++i) {
+        FURI_LOG_D(TAG, "FN_ANSWER[%d] = %x", i, fn_answer->data[i]);
+    }
+
+    fnInfo->fn_state = (FNState)fn_answer->data[0];
+    //TODO 1 и 2 бит Чёт там про ОФД
     fnInfo->is_session_open = (bool)fn_answer->data[3];
+    fnInfo->fn_warn_flags = fn_answer->data[4];
+    fnInfo->date_time.year = fn_answer->data[5];
+    fnInfo->date_time.mouth = fn_answer->data[6];
+    fnInfo->date_time.date = fn_answer->data[7];
+    fnInfo->date_time.hour = fn_answer->data[8];
+    fnInfo->date_time.minute = fn_answer->data[9];
+    //Считываем СН ФН с 10 по 16 бит
+    for(int i = 0; i < 16; ++i) {
+        fnInfo->serial_number[i] = (char)fn_answer->data[10 + i];
+        //FURI_LOG_D(TAG, "FN_SN[%d] = %x", i + 10, (char)fn_answer->data[10 + i]);
+    }
+    fnInfo->serial_number[17] = (char)'\0';
+    uint8_t last_FD[4];
+    for(int i = 0; i < 4; ++i) {
+        last_FD[i] = fn_answer->data[(9 + 17) + i];
+        FURI_LOG_D(TAG, "last_FD[%d] = %x", i, last_FD[i]);
+    }
+    fnInfo->last_doc_number = byte_array_to_uint32t_LE(last_FD);
 
     free_fn_answer(fn_answer);
 

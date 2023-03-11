@@ -23,6 +23,8 @@ static void fn_worker_run_callback(FNWorker* worker, FNCustomEventWorker event) 
 }
 
 static void fn_worker_fn_detect_process(FNWorker * worker){
+    furi_assert(worker);
+    furi_assert(worker->fn_info);
     FNCustomEventWorker event = FNCustomEventWorkerFNNotResponse;
 
 
@@ -49,6 +51,8 @@ static void fn_worker_fn_detect_process(FNWorker * worker){
         FURI_LOG_D(TAG " detect", "FN Error: %#08x",  fnInfo->last_fn_error);
         event = FNCustomEventWorkerFNError;
     }
+    fn_info_copy(worker->fn_info, fnInfo);
+    //FURI_LOG_D(TAG " detect", "FN SN: %s",  fnInfo->serial_number);
     free(fnInfo);
     fn_worker_run_callback(worker, event);
 }

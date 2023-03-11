@@ -31,6 +31,7 @@ bool fn_test_scene_detect_on_event(void* context, SceneManagerEvent event) {
         FURI_LOG_D(TAG_S, "event.event = %lu", event.event);
         if(event.event == FNCustomEventWorkerFNIdentified) {
             notification_message(app->notifications, &sequence_blink_start_blue);
+            scene_manager_next_scene(app->scene_manager, FNAppSceneFNInfo);
            // scene_manager_set_scene_state(app->scene_manager, SPIMemSceneSelectVendor, 0);
             //scene_manager_next_scene(app->scene_manager, SPIMemSceneSelectVendor);
         } else if(event.event == FNCustomEventWorkerFNNotResponse) {

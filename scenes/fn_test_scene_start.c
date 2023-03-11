@@ -64,6 +64,7 @@ bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
             scene_manager_next_scene(app->scene_manager, FNAppSceneAbout);
             success = true;
         } else if(event.event == FNTestSceneStartSubmenuIndexFNInfo){
+            app->mode = FNModeGetFNInfo;
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
             success = true;
         } else if(event.event == FNTestSceneStartSubmenuIndexTest){

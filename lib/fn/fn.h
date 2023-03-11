@@ -5,6 +5,16 @@
 
 typedef struct FNInfo FNInfo;
 
+bool fn_is_session_open(const FNInfo* fn);
+
+char* fn_get_fn_state(const FNInfo* fn);
+
+uint32_t fn_get_last_document_number(const FNInfo* fn);
+
+void fn_info_copy(FNInfo* dest, const FNInfo* src);
+
+void fn_get_last_document_datetime(const FNInfo* fn, FuriString* string);
+
 /**
  * Является ли ФН МГМ
  * @param fn

@@ -1,4 +1,5 @@
 #include "fn_test_app_i.h"
+#include "fn_i.h"
 #include <furi.h>
 
 #define TAG "FNTest"
@@ -35,6 +36,7 @@ FNApp* fn_test_app_alloc(void) {
     app->view_detect = fn_test_view_detect_alloc();
     app->worker = fn_worker_alloc();
     app->popup = popup_alloc();
+    app->fn_info = malloc(sizeof(FNInfo));
 
     app->view_dispatcher = view_dispatcher_alloc();
     view_dispatcher_enable_queue(app->view_dispatcher);
@@ -73,6 +75,7 @@ FNApp* fn_test_app_alloc(void) {
 
 void fn_test_app_free(FNApp* app) {
     furi_assert(app);
+    free(app->fn_info);
 
     view_dispatcher_remove_view(app->view_dispatcher, FNTestViewSubmenu);
     //view_dispatcher_remove_view(app->view_dispatcher, SPIMemViewDialogEx);
