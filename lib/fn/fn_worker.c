@@ -19,16 +19,16 @@ static int32_t fn_worker_thread(void* thread_context);
 
 void uart_thread_cb(uint8_t* buff, size_t len ,void * ctx)
 {
-    FURI_LOG_D(TAG, "uart_thread_cb, len=%d", len);
+    FURI_LOG_I(TAG, "uart_thread_cb, len=%d", len);
     FNWorker* app = ctx;
     FuriThreadId thread_id = furi_thread_get_id(app->thread);
     FuriStatus status = furi_stream_buffer_reset(app->stream);
-    FURI_LOG_D(TAG, "uart_thread_cb, status=%d", status);
+    FURI_LOG_I(TAG, "uart_thread_cb, status=%d", status);
 
     if(len > 0)
     {
         size_t send_len = furi_stream_buffer_send(app->stream, buff, len, FuriWaitForever);
-        FURI_LOG_D(TAG, "uart_thread_cb, send_len=%d", send_len);
+        FURI_LOG_I(TAG, "uart_thread_cb, send_len=%d", send_len);
         if(send_len == len && status == FuriStatusOk)
         {
             furi_thread_flags_set(thread_id, FNEventRxDone);

@@ -10,6 +10,7 @@
  * <a href="http://www.consultant.ru/document/cons_doc_LAW_362322/c7bcefffc3cbf3b1189c0f92e21f7bd930aa5b96/">Версия ФФД</a>
  */
 typedef enum {
+    FFD_NONE,
     FFD_1,
     FFD_1_05,
     FFD_1_1,
@@ -19,8 +20,10 @@ typedef enum {
  * <a href="https://data.nalog.ru/html/sites/www.new.nalog.ru/docs/kkt/1_2_05_090621.pdf">Команды к ФН</a>
  */
 typedef enum {
-    FNTestGetFNStatus = 0x30,/** Запрос статуса ФН */
-    FNTestGetFNEndDate = 0x32 /** Запрос срока действия ФН */
+    FN_CMDGetFNStatus = 0x30,/** Запрос статуса ФН */
+    FN_CMDGetFNEndDate = 0x32, /** Запрос срока действия ФН */
+    FN_CMDGetFNFwVersion= 0x33, /** Запрос версии ПО ФН */
+    FN_CMDGetFFD = 0x3A /** Запрос версии ФФД */
 } FN_CMD;
 
 /**
@@ -29,7 +32,7 @@ typedef enum {
  * fw_mode Является ли ФН МГМ или он боевой
  */
 typedef struct FwVersion {
-    const char* fw_version;
+    char fw_version[16];
     uint8_t fw_mode;
 } FNFwVersion;
 
@@ -48,24 +51,14 @@ typedef enum {
     FNStage4 = 15
 } FNState;
 
-typedef enum {
-    FNWarnReplaceNeeded,
-    FNWarnResourceEnd,
-    FNWarnMemoryEnd,
-    FNWarn_OFD_WaitTimeExceeded,
-    FNWarnFailureAccordingToFormatLogicalControlData,
-    FNWarnSetupKKTRequired,
-    FNWarn_OFD_Canceled,
-} FNWarnFlags;
-
 /**
  * Структура с основной информацией об ФН, необходима для исполнения остальных команд
  */
 struct FNInfo {
     FNError last_fn_error;
     FNState fn_state;
-    FN_FFD ffd_enum;
-    const char* revision_name;
+    FN_FFD ffd_version;
+    FN_FFD max_ffd_version;
     char serial_number[18];
     FNFwVersion fw_version;
     bool is_session_open;

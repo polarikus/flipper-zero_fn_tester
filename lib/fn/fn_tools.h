@@ -17,3 +17,5 @@ typedef enum {
 
 
 FNToolCmdStatus fn_tool_get_fn_info(FNWorker* fn_worker, FNInfo* fnInfo);
+
+FNToolCmdStatus fn_tool_get_fn_fw(FNWorker* fn_worker, FNInfo* fnInfo);

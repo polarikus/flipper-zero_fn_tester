@@ -36,6 +36,7 @@ bool fn_test_scene_detect_on_event(void* context, SceneManagerEvent event) {
             //scene_manager_next_scene(app->scene_manager, SPIMemSceneSelectVendor);
         } else if(event.event == FNCustomEventWorkerFNNotResponse) {
             notification_message(app->notifications, &sequence_blink_start_magenta);
+            scene_manager_next_scene(app->scene_manager, FNAppSceneTimeout);
             //scene_manager_next_scene(app->scene_manager, SPIMemSceneChipDetectFail);
         } else if(event.event == FNCustomEventWorkerFNError){
             notification_message(app->notifications, &sequence_blink_start_red);

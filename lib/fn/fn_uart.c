@@ -36,12 +36,14 @@ static void timer_timeout(void* ctx) {
 }
 
 static void fn_init_uart(uint32_t baudrate, void (*cb)(UartIrqEvent ev, uint8_t data, void* ctx), void* ctx) {
+#ifdef APP_FN_DEBUG
+    FuriHalUartId uart_id = FuriHalUartIdLPUART1;
+#else
     FuriHalUartId uart_id = FuriHalUartIdUSART1;
-    furi_check(baudrate > 0);
-
-#ifndef APP_DEBUG
     furi_hal_console_disable();
 #endif
+    furi_check(baudrate > 0);
+
     furi_hal_uart_deinit(uart_id);
     furi_hal_uart_init(uart_id, baudrate);
     furi_hal_uart_set_irq_cb(uart_id, cb, ctx);
@@ -63,7 +65,7 @@ static int32_t uart_process(void* p) {
 
 
     FuriTimer* timer = furi_timer_alloc(timer_timeout, FuriTimerTypePeriodic, app);
-
+    FuriLogLevel old_log_level = furi_log_get_level();//Сохраняем текущие настройки логов
     uint32_t events;
     while(1) {
         events = furi_thread_flags_wait(UARTThreadEventAll, FuriFlagWaitAny, FuriWaitForever);
@@ -71,9 +73,11 @@ static int32_t uart_process(void* p) {
         if(events & UARTThreadEventStop) break;
         if(events & UARTThreadEventRxStart)
         {
+            furi_log_set_level(FuriLogLevelNone);//Из-за логов теряются байты, поэтому отключаем
             furi_timer_start(timer, pdMS_TO_TICKS(uart_app->timeout));
         }
         if(events & UARTThreadEventRxDone){
+            furi_log_set_level(old_log_level);//Возвращаем логи
             furi_timer_stop(timer);
             data_len = furi_stream_buffer_receive(app->rx_stream, rx_buffer, rx_buffer_size, uart_app->timeout);
             uart_app->state = UARTModeRxDone;
@@ -97,10 +101,14 @@ UARTApp* fn_uart_app_alloc() {
     UARTApp* uart_app = malloc(sizeof(UARTApp));
     uart_app->timeout = 0;
     uart_app->baudrate = 115200;
+#ifndef APP_FN_DEBUG
     uart_app->uart_id = FuriHalUartIdUSART1;
+#else
+    uart_app->uart_id = FuriHalUartIdLPUART1;
+#endif
     uart_app->thread = furi_thread_alloc_ex("FN UART thread", 1 * 1024, uart_process, uart_app);
     uart_app->state = UARTModeIdle;
-    furi_thread_set_priority(uart_app->thread, FuriThreadPriorityHighest);
+    furi_thread_set_priority(uart_app->thread, FuriThreadPriorityIsr);
     return uart_app;
 }
 
@@ -122,8 +130,7 @@ void fn_uart_stop_thread(UARTApp* app)
 }
 
 void fn_uart_app_free(UARTApp* app) {
-
-#ifndef APP_DEBUG
+#ifndef APP_FN_DEBUG
     furi_hal_console_enable();
 #endif
     furi_check(app);
@@ -141,6 +148,7 @@ bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t t
     FURI_LOG_D(TAG, "tx_buff[3] = %x", tx_buff[3]);
     if(app->state != UARTModeIdle)
     {
+        FURI_LOG_D(TAG, "!UARTModeIdle. MODE=%d", app->state);
         return false;
     }
     if(timeout != app->timeout) app->timeout = timeout;

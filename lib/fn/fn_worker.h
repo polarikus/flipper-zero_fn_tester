@@ -6,7 +6,6 @@
 #include <furi.h>
 #include "fn.h"
 
-#define APP_DEBUG
 
 typedef struct FNWorker FNWorker;
 

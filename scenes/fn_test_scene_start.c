@@ -39,7 +39,7 @@ void fn_test_scene_start_on_enter(void* context) {
         FNTestSceneStartSubmenuIndexAbout,
         fn_test_scene_start_submenu_callback,
         app);
-#if APP_FN_DEBUG
+#ifdef APP_FN_DEBUG
     submenu_add_item(
         app->submenu,
         "Test",

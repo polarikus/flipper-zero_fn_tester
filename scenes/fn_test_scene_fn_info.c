@@ -25,8 +25,16 @@ void fn_test_scene_fn_info_on_enter(void* context) {
     furi_string_cat_printf(tmp_string, "Last fd datetime:\n");
     fn_get_last_document_datetime(app->fn_info, tmp_string);
     furi_string_cat_printf(tmp_string, "\nLast fd num: %lu\n", fn_get_last_document_number(app->fn_info));
-    //furi_string_cat_printf(tmp_string, "Developed by: %s\n", FN_TEST_DEVELOPER);
-    //furi_string_cat_printf(tmp_string, "Github: %s\n\n", FN_TEST_GITHUB);
+    if(fn_is_warn_flags_not_null(app->fn_info)){
+        furi_string_cat_printf(tmp_string, "Warning flags:");
+        fn_get_warn_flags_str(app->fn_info, tmp_string);
+    }
+    furi_string_cat_printf(tmp_string, "\e#%s\n", "FN FFD (3Ah)");
+    furi_string_cat_printf(tmp_string, "FFD version: %s\n", fn_get_ffd_version_string(app->fn_info));
+    furi_string_cat_printf(tmp_string, "Max FFD version: %s\n", fn_get_max_ffd_version_string(app->fn_info));
+    furi_string_cat_printf(tmp_string, "\e#%s\n", "FN version (33h)");
+    furi_string_cat_printf(tmp_string, "FW version: %s\n", fn_get_fw_version(app->fn_info));
+    furi_string_cat_printf(tmp_string, "Is MGM: %s\n", bool_to_hum(fn_is_mgm(app->fn_info)));
 
     widget_add_text_scroll_element(app->widget, 0, 16, 128, 50, furi_string_get_cstr(tmp_string));
 

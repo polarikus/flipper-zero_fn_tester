@@ -5,6 +5,8 @@
 
 typedef struct FNInfo FNInfo;
 
+
+
 bool fn_is_session_open(const FNInfo* fn);
 
 char* fn_get_fn_state(const FNInfo* fn);
@@ -15,12 +17,18 @@ void fn_info_copy(FNInfo* dest, const FNInfo* src);
 
 void fn_get_last_document_datetime(const FNInfo* fn, FuriString* string);
 
+void fn_get_warn_flags_str(const FNInfo* fn, FuriString* string);
+
+bool fn_is_warn_flags_not_null(const FNInfo* fn);
+
 /**
  * Является ли ФН МГМ
  * @param fn
  * @return bool (true = МГМ)
  */
 bool fn_is_mgm(const FNInfo* fn);
+
+const char* fn_get_max_ffd_version_string(const FNInfo* fn);
 
 /**
  * Получить версию ФФД ФН
@@ -41,7 +49,7 @@ const char* fn_get_sn(const FNInfo* fn);
  * @param fn
  * @return Строка с версией ПО
  */
-const char* fn_get_revision(const FNInfo* fn);
+const char* fn_get_fw_version(const FNInfo* fn);
 
 /**
  * Получить ENUM с версией ФФД

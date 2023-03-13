@@ -37,6 +37,7 @@ FNApp* fn_test_app_alloc(void) {
     app->worker = fn_worker_alloc();
     app->popup = popup_alloc();
     app->fn_info = malloc(sizeof(FNInfo));
+    app->fn_info->serial_number[0] = 'N';
 
     app->view_dispatcher = view_dispatcher_alloc();
     view_dispatcher_enable_queue(app->view_dispatcher);

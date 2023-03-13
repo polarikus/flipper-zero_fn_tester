@@ -18,7 +18,8 @@ App(
     fap_icon_assets="icons",
     fap_private_libs=[
             Lib(
-                name="fn"
+                name="fn",
+                cdefines=["APP_FN_DEBUG"]
             )
     ]
 )
