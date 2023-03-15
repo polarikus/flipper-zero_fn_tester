@@ -18,9 +18,8 @@
 #include "views/fn_test_view_detect.h"
 
 #include "lib/fn/fn_worker.h"
-#include "lib/fn/fn.h"
-#include "lib/fn/fn_errors.h"
-
+#include "applications_user/fn_test/lib/fn/fn_objects/fn_info/fn.h"
+#include "applications_user/fn_test/lib/fn/errors/fn_errors.h"
 
 #define TAG "FNTest"
 

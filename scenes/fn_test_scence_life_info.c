@@ -2,8 +2,8 @@
 // Created by Игорь Данилов on 11.03.2023.
 //
 #include "../fn_test_app_i.h"
-#include "fn_life_info.h"
-#include "fn_life_info.h"
+#include "applications_user/fn_test/lib/fn/fn_objects/life_info/fn_life_info.h"
+#include "applications_user/fn_test/lib/fn/fn_objects/life_info/fn_life_info.h"
 
 #define FN_TEST_NAME "\e#\e!       Life Info        \e!\n"
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"

@@ -3,7 +3,7 @@
 //
 #include "../fn_test_app_i.h"
 #include "fn_helpers.h"
-#include "fn_data_types.h"
+#include "applications_user/fn_test/lib/fn/data_types/fn_data_types.h"
 
 #define FN_TEST_NAME "\e#\e!       FN Info        \e!\n"
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "fn_worker.h"
-#include "fn_uart_i.h"
+#include "applications_user/fn_test/lib/fn/uart/fn_uart_i.h"
 
 typedef enum {
     FNWorkerModeIdle,

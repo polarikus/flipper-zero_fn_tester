@@ -1,5 +1,5 @@
 #include "fn_test_app_i.h"
-#include "fn_i.h"
+#include "applications_user/fn_test/lib/fn/fn_objects/fn_info/fn_i.h"
 #include <furi.h>
 
 #define TAG "FNTest"

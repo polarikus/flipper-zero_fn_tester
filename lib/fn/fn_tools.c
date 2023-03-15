@@ -3,7 +3,7 @@
 //
 
 #include "fn_tools.h"
-#include "fn_uart_i.h"
+#include "applications_user/fn_test/lib/fn/uart/fn_uart_i.h"
 #include "fn_helpers.h"
 #include <furi_hal_rtc.h>
 #define TAG "FN_TOOLS"
