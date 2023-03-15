@@ -57,6 +57,12 @@ char* fn_get_fn_state(const FNInfo* fn)
     }
 }
 
+FNState fn_get_fn_state_enum(const FNInfo* fn)
+{
+    return (fn->fn_state);
+}
+
+
 void fn_get_last_document_datetime(const FNInfo* fn, FuriString* string){
     furi_string_cat_printf(string, "%02d.%02d.20%02d %02d:%02d",
     fn->date_time.date, fn->date_time.mouth, fn->date_time.year,
@@ -123,6 +129,9 @@ const char* fn_get_max_ffd_version_string(const FNInfo* fn)
     }
 }
 
-uint8_t fn_get_ffd_enum(const FNInfo* fn){
+FN_FFD fn_get_ffd_enum(const FNInfo* fn){
     return fn->ffd_version;
+}
+FN_FFD fn_get_max_ffd_enum(const FNInfo* fn){
+    return fn->max_ffd_version;
 }

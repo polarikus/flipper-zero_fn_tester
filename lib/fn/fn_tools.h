@@ -6,6 +6,7 @@
 #include "fn_errors.h"
 #include "fn_i.h"
 #include "fn_worker_i.h"
+#include "fn_life_info_i.h"
 
 typedef enum {
     FNToolOk,
@@ -16,6 +17,6 @@ typedef enum {
 } FNToolCmdStatus;
 
 
-FNToolCmdStatus fn_tool_get_fn_info(FNWorker* fn_worker, FNInfo* fnInfo);
+FNToolCmdStatus fn_tool_get_fn_info(FNError *fn_error, FNWorker* fn_worker, FNInfo* fnInfo);
 
-FNToolCmdStatus fn_tool_get_fn_fw(FNWorker* fn_worker, FNInfo* fnInfo);
+FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker, FNLifeInfo* fnInfo);

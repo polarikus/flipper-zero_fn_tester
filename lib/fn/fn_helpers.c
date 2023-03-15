@@ -60,6 +60,11 @@ void uint16t_LE_to_uint8t_bytes(uint16_t uint16, uint8_t* bytes){
     bytes[1] = uint16;
 }
 
+void uint16t_BE_to_uint8t_bytes(uint16_t uint16, uint8_t* bytes){
+    bytes[0] = uint16;
+    bytes[1] = uint16 >> 8;
+}
+
 uint32_t byte_array_to_uint32t_LE(const uint8_t *byteArray) {
     uint32_t result = 0;
     for (int i = 0; i < 4; i++) {

@@ -10,15 +10,17 @@
 #define TAG "FNWorkerModes"
 
 static void fn_worker_fn_detect_process(FNWorker * worker);
+static void fn_worker_get_life_info_process(FNWorker * worker);
 
 const FNWorkerModeType fn_worker_modes[] = {
     [FNWorkerModeIdle] = {.process = NULL},
-    [FNWorkerModeFNDetect] = {.process = fn_worker_fn_detect_process}
+    [FNWorkerModeFNDetect] = {.process = fn_worker_fn_detect_process},
+    [FNWorkerModeGetLifeInfo] = {.process = fn_worker_get_life_info_process}
 };
 
-static void fn_worker_run_callback(FNWorker* worker, FNCustomEventWorker event) {
+static void fn_worker_run_callback(FNWorker* worker, FNCustomEventWorker event, FNError error) {
     if(worker->callback) {
-        worker->callback(worker->cb_ctx, event);
+        worker->callback(worker->cb_ctx, event, error);
     }
 }
 
@@ -26,23 +28,13 @@ static void fn_worker_fn_detect_process(FNWorker * worker){
     furi_assert(worker);
     furi_assert(worker->fn_info);
     FNCustomEventWorker event = FNCustomEventWorkerFNNotResponse;
+    FNError fn_error = FNOk;
 
 
-    /*
-    while(!spi_mem_tools_read_chip_info(worker->chip_info)) {
-        furi_delay_tick(10); // to give some time to OS
-        if(spi_mem_worker_check_for_stop(worker)) return;
-    }
-    if(spi_mem_chip_find_all(worker->chip_info, *worker->found_chips)) {
-        event = SPIMemCustomEventWorkerChipIdentified;
-    } else {
-        event = SPIMemCustomEventWorkerChipUnknown;
-    }
-     */
     FNInfo* fnInfo = malloc(sizeof(FNInfo));
 
     //int ctr = 0;
-    FNToolCmdStatus cmd_status = fn_tool_get_fn_info(worker, fnInfo);
+    FNToolCmdStatus cmd_status = fn_tool_get_fn_info(&fn_error, worker, fnInfo);
     //FNToolCmdStatus cmd_status = fn_tool_get_fn_fw(worker, fnInfo);
     FURI_LOG_D(TAG, "cmd_status %d", cmd_status);
     /*
@@ -58,12 +50,28 @@ static void fn_worker_fn_detect_process(FNWorker * worker){
         event = FNCustomEventWorkerFNIdentified;
     } else if(cmd_status == FNToolFnError)
     {
-        FURI_LOG_D(TAG " detect", "FN Error: %#08x",  fnInfo->last_fn_error);
+        FURI_LOG_D(TAG " detect", "FN Error: %#08x",  fn_error);
         event = FNCustomEventWorkerFNError;
     }
     fn_info_copy(worker->fn_info, fnInfo);
     //cmd_status = fn_tool_get_fn_fw(worker, fnInfo);
     //FURI_LOG_D(TAG " detect", "FN SN: %s",  fnInfo->serial_number);
     free(fnInfo);
-    fn_worker_run_callback(worker, event);
+    fn_worker_run_callback(worker, event, fn_error);
+}
+
+static void fn_worker_get_life_info_process(FNWorker * worker){
+    furi_check(worker->fn_answer_data);
+    FNCustomEventWorker event = FNCustomEventWorkerFNNotResponse;
+    FNLifeInfo* life_info_tmp = fn_life_info_alloc();
+    FNError fn_error = FNOk;
+    FNToolCmdStatus cmd_status = fn_tool_get_fn_life_data(&fn_error, worker, life_info_tmp);
+    if(cmd_status == FNToolOk){
+        event = FNCustomEventWorkerDone;
+    } else if(cmd_status == FNToolFnError){
+        event = FNCustomEventWorkerFNError;
+    }
+    memcpy(worker->fn_answer_data, life_info_tmp, sizeof(FNLifeInfo));
+    fn_life_info_free(life_info_tmp);
+    fn_worker_run_callback(worker, event, fn_error);
 }

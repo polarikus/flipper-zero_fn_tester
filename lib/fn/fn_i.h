@@ -5,26 +5,10 @@
 
 #include <furi.h>
 #include "fn.h"
+#include "fn_commands.h"
 #include "fn_errors.h"
-/**
- * <a href="http://www.consultant.ru/document/cons_doc_LAW_362322/c7bcefffc3cbf3b1189c0f92e21f7bd930aa5b96/">Версия ФФД</a>
- */
-typedef enum {
-    FFD_NONE,
-    FFD_1,
-    FFD_1_05,
-    FFD_1_1,
-    FFD_1_2
-} FN_FFD;
-/**
- * <a href="https://data.nalog.ru/html/sites/www.new.nalog.ru/docs/kkt/1_2_05_090621.pdf">Команды к ФН</a>
- */
-typedef enum {
-    FN_CMDGetFNStatus = 0x30,/** Запрос статуса ФН */
-    FN_CMDGetFNEndDate = 0x32, /** Запрос срока действия ФН */
-    FN_CMDGetFNFwVersion= 0x33, /** Запрос версии ПО ФН */
-    FN_CMDGetFFD = 0x3A /** Запрос версии ФФД */
-} FN_CMD;
+#include "fn_ffd.h"
+#include "fn_data_types.h"
 
 /**
  * Версия ПО ФН
@@ -44,18 +28,10 @@ typedef struct DateTime {
     uint8_t minute;
 } DateTime;
 
-typedef enum {
-    FNStage1 = 1,
-    FNStage2 = 3,
-    FNStage3 = 7,
-    FNStage4 = 15
-} FNState;
-
 /**
  * Структура с основной информацией об ФН, необходима для исполнения остальных команд
  */
 struct FNInfo {
-    FNError last_fn_error;
     FNState fn_state;
     FN_FFD ffd_version;
     FN_FFD max_ffd_version;

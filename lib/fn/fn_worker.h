@@ -5,6 +5,8 @@
 
 #include <furi.h>
 #include "fn.h"
+#include "fn_life_info.h"
+#include "fn_errors.h"
 
 
 typedef struct FNWorker FNWorker;
@@ -27,7 +29,7 @@ typedef enum {
     FNRxTimeout
 } RxStatus;
 
-typedef void (*FNWorkerCallback)(void* context, FNCustomEventWorker event);
+typedef void (*FNWorkerCallback)(void* context, FNCustomEventWorker event, FNError error);
 
 void uart_thread_cb(uint8_t* buff, size_t len ,void * ctx);
 
@@ -69,6 +71,12 @@ RxStatus fn_worker_wait_uart_cb(FNWorker* worker, uint32_t timeout);
  */
 void fn_worker_fn_detect_start(
     FNInfo* fn_info,
+    FNWorker* worker,
+    FNWorkerCallback callback,
+    void* context);
+
+void fn_worker_get_life_info_start(
+    FNLifeInfo* fn_life_info,
     FNWorker* worker,
     FNWorkerCallback callback,
     void* context);

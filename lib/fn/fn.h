@@ -2,6 +2,8 @@
 // Created by Игорь Данилов on 23.02.2023.
 //
 #include <furi.h>
+#include "fn_ffd.h"
+#include "fn_data_types.h"
 
 typedef struct FNInfo FNInfo;
 
@@ -56,4 +58,8 @@ const char* fn_get_fw_version(const FNInfo* fn);
  * @param fn
  * @return uint8_t ???
  */
-uint8_t fn_get_ffd_enum(const FNInfo* fn);
+FN_FFD fn_get_ffd_enum(const FNInfo* fn);
+
+FN_FFD fn_get_max_ffd_enum(const FNInfo* fn);
+
+FNState fn_get_fn_state_enum(const FNInfo* fn);

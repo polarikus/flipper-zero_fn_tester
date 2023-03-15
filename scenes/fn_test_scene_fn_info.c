@@ -3,6 +3,7 @@
 //
 #include "../fn_test_app_i.h"
 #include "fn_helpers.h"
+#include "fn_data_types.h"
 
 #define FN_TEST_NAME "\e#\e!       FN Info        \e!\n"
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"
@@ -22,9 +23,11 @@ void fn_test_scene_fn_info_on_enter(void* context) {
                            fn_get_fn_state(app->fn_info));
     furi_string_cat_printf(tmp_string, "Session open: %s\n",
                            bool_to_hum(fn_is_session_open(app->fn_info)));
-    furi_string_cat_printf(tmp_string, "Last fd datetime:\n");
-    fn_get_last_document_datetime(app->fn_info, tmp_string);
-    furi_string_cat_printf(tmp_string, "\nLast fd num: %lu\n", fn_get_last_document_number(app->fn_info));
+    if(fn_get_fn_state_enum(app->fn_info) > FNStage1){
+        furi_string_cat_printf(tmp_string, "Last fd datetime:\n");
+        fn_get_last_document_datetime(app->fn_info, tmp_string);
+        furi_string_cat_printf(tmp_string, "\nLast fd num: %lu\n", fn_get_last_document_number(app->fn_info));
+    }
     if(fn_is_warn_flags_not_null(app->fn_info)){
         furi_string_cat_printf(tmp_string, "Warning flags:");
         fn_get_warn_flags_str(app->fn_info, tmp_string);
@@ -55,7 +58,6 @@ bool fn_test_scene_fn_info_on_event(void* context, SceneManagerEvent event) {
         }
     }
     return success;
-    return false;
 }
 void fn_test_scene_fn_info_on_exit(void* context) {
     FNApp * app = context;

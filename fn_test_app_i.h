@@ -19,12 +19,14 @@
 
 #include "lib/fn/fn_worker.h"
 #include "lib/fn/fn.h"
+#include "lib/fn/fn_errors.h"
 
 
 #define TAG "FNTest"
 
 typedef enum {
     FNModeGetFNInfo,
+    FNModeGetFNLifeInfo,
     FNModeGetLastDocInfo,
     FNModeGetRegInfo,
     FNModeGetSessionInfo,
@@ -45,11 +47,13 @@ struct FNApp {
     Widget* widget;
     Submenu* submenu;
     Popup* popup;
+    FNError last_fn_error;
 
     FNAppMode mode;
     FNWorker* worker;
-    //UartProcess
+
     FNInfo* fn_info;
+    void* fn_tmp_data;
 
     FNDetectView* view_detect;
 };

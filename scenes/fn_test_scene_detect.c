@@ -1,8 +1,10 @@
 #include "../fn_test_app_i.h"
 
+
 #define TAG_S "SCENE DETECT"
 
-static void fn_test_scene_chip_detect_callback(void* context, FNCustomEventWorker event) {
+static void fn_test_scene_chip_detect_callback(void* context, FNCustomEventWorker event, FNError fn_error) {
+    UNUSED(fn_error);
     FNApp * app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, event);
 }
@@ -31,7 +33,11 @@ bool fn_test_scene_detect_on_event(void* context, SceneManagerEvent event) {
         FURI_LOG_D(TAG_S, "event.event = %lu", event.event);
         if(event.event == FNCustomEventWorkerFNIdentified) {
             notification_message(app->notifications, &sequence_blink_start_blue);
-            scene_manager_next_scene(app->scene_manager, FNAppSceneFNInfo);
+            if(app->mode == FNModeGetFNInfo){
+                scene_manager_next_scene(app->scene_manager, FNAppSceneFNInfo);
+            } else if(app->mode == FNModeGetFNLifeInfo){
+                scene_manager_next_scene(app->scene_manager, FNAppSceneLifeInfo);
+            }
            // scene_manager_set_scene_state(app->scene_manager, SPIMemSceneSelectVendor, 0);
             //scene_manager_next_scene(app->scene_manager, SPIMemSceneSelectVendor);
         } else if(event.event == FNCustomEventWorkerFNNotResponse) {

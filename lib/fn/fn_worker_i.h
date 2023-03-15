@@ -8,7 +8,8 @@
 
 typedef enum {
     FNWorkerModeIdle,
-    FNWorkerModeFNDetect
+    FNWorkerModeFNDetect,
+    FNWorkerModeGetLifeInfo
 } FNWorkerMode;
 
 struct FNWorker {
@@ -19,6 +20,7 @@ struct FNWorker {
     FuriThread* thread;
     UARTApp* uart;
     FuriStreamBuffer* stream;
+    void* fn_answer_data;
 };
 
 extern const FNWorkerModeType fn_worker_modes[];

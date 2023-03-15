@@ -36,7 +36,7 @@ static void timer_timeout(void* ctx) {
 }
 
 static void fn_init_uart(uint32_t baudrate, void (*cb)(UartIrqEvent ev, uint8_t data, void* ctx), void* ctx) {
-#ifdef APP_FN_DEBUG
+#ifdef FURI_DEBUG
     FuriHalUartId uart_id = FuriHalUartIdLPUART1;
 #else
     FuriHalUartId uart_id = FuriHalUartIdUSART1;
@@ -101,7 +101,7 @@ UARTApp* fn_uart_app_alloc() {
     UARTApp* uart_app = malloc(sizeof(UARTApp));
     uart_app->timeout = 0;
     uart_app->baudrate = 115200;
-#ifndef APP_FN_DEBUG
+#ifndef FURI_DEBUG
     uart_app->uart_id = FuriHalUartIdUSART1;
 #else
     uart_app->uart_id = FuriHalUartIdLPUART1;
@@ -124,13 +124,12 @@ void fn_uart_stop_thread(UARTApp* app)
     furi_check(app);
     furi_check(app->thread);
     furi_thread_flags_set(furi_thread_get_id(app->thread), UARTThreadEventStop);
-    FURI_LOG_D(TAG, "WAIT SPND");
     furi_thread_join(app->thread);
-    FURI_LOG_D(TAG, "WAIT SPNDED");
+    FURI_LOG_D(TAG, "uart thread stopped");
 }
 
 void fn_uart_app_free(UARTApp* app) {
-#ifndef APP_FN_DEBUG
+#ifndef FURI_DEBUG
     furi_hal_console_enable();
 #endif
     furi_check(app);

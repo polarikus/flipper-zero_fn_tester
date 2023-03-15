@@ -2,6 +2,7 @@
 
 typedef enum {
     FNTestSceneStartSubmenuIndexFNInfo,
+    FNTestSceneStartSubmenuIndexFNLifeInfo,
     FNTestSceneStartSubmenuIndexLastDocInfo,
     FNTestSceneStartSubmenuIndexRegInfo,
     FNTestSceneStartSubmenuIndexSessionInfo,
@@ -29,6 +30,12 @@ void fn_test_scene_start_on_enter(void* context) {
         app);
     submenu_add_item(
         app->submenu,
+        "FN Life Info",
+        FNTestSceneStartSubmenuIndexFNLifeInfo,
+        fn_test_scene_start_submenu_callback,
+        app);
+    submenu_add_item(
+        app->submenu,
         "Wiring",
         FNTestSceneStartSubmenuIndexWiring,
         fn_test_scene_start_submenu_callback,
@@ -39,7 +46,7 @@ void fn_test_scene_start_on_enter(void* context) {
         FNTestSceneStartSubmenuIndexAbout,
         fn_test_scene_start_submenu_callback,
         app);
-#ifdef APP_FN_DEBUG
+#ifdef FURI_DEBUG
     submenu_add_item(
         app->submenu,
         "Test",
@@ -51,6 +58,7 @@ void fn_test_scene_start_on_enter(void* context) {
         app->submenu, scene_manager_get_scene_state(app->scene_manager, FNAppSceneStart));
     view_dispatcher_switch_to_view(app->view_dispatcher, FNTestViewSubmenu);
 }
+
 
 bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
     FNApp* app = context;
@@ -67,7 +75,11 @@ bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
             app->mode = FNModeGetFNInfo;
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
             success = true;
-        } else if(event.event == FNTestSceneStartSubmenuIndexTest){
+        } else if(event.event == FNTestSceneStartSubmenuIndexFNLifeInfo){
+            app->mode = FNModeGetFNLifeInfo;
+            scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
+            success = true;
+        }else if(event.event == FNTestSceneStartSubmenuIndexTest){
             scene_manager_next_scene(app->scene_manager, FNAppSceneTest);
             success = true;
         }
