@@ -80,4 +80,8 @@ void fn_worker_get_life_info_start(
     FNWorkerCallback callback,
     void* context);
 
+void fn_worker_flash_MGM_start(
+    FNWorker* worker,
+    FNWorkerCallback callback,
+    void* context);
 

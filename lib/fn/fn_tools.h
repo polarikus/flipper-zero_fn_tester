@@ -20,3 +20,5 @@ typedef enum {
 FNToolCmdStatus fn_tool_get_fn_info(FNError *fn_error, FNWorker* fn_worker, FNInfo* fnInfo);
 
 FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker, FNLifeInfo* fnInfo);
+
+FNToolCmdStatus fn_tool_flash_MGM(FNError *fn_error, FNWorker* fn_worker);

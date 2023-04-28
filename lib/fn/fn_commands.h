@@ -13,4 +13,5 @@ typedef enum {
     FN_CMDGetFFD = 0x3A, /** Запрос версии ФФД */
     FN_CMDGetFNEndDays= 0x3B, /** Запрос оставшегося срока действия ФН */
     FN_CMDGetFNMemoryInfo= 0x3D, /** Запрос ресурса свободной памяти в ФН */
+    FN_CMDFlashMGM= 0x60, /** Вернуть МГМ в начальное состояние (сброс МГМ) */
 } FN_CMD;

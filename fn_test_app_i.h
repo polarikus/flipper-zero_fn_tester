@@ -59,7 +59,7 @@ struct FNApp {
 
 typedef enum {
     FNTestViewSubmenu,
-    FNTestViewDialogEx,
+    //FNTestViewDialogEx,
     FNTestViewPopup,
     FNTestViewWidget,
     FNTestViewProgress,

@@ -25,7 +25,7 @@ void fn_life_info_get_end_date(const FNLifeInfo* lifeInfo, FuriString* tmp_strin
     if(lifeInfo->date_end.year == 0){
         furi_string_cat_printf(tmp_string, "not registered");
     } else{
-        furi_string_cat_printf(tmp_string, "%02d.%02d.%02d",
+        furi_string_cat_printf(tmp_string, "%02d.%02d.20%02d",
                                lifeInfo->date_end.day , lifeInfo->date_end.mouth, lifeInfo->date_end.year);
     }
 }

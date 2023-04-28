@@ -116,6 +116,7 @@ void fn_uart_start_thread(UARTApp* app)
 {
     furi_check(app);
     furi_check(app->thread);
+    furi_check(furi_thread_get_state(app->thread) != FuriThreadStateRunning);
     furi_thread_start(app->thread);
 }
 

@@ -10,11 +10,14 @@
 
 static void fn_test_scene_life_info_callback(void* context, FNCustomEventWorker event, FNError fn_error) {
     UNUSED(fn_error);
+    furi_check(context);
+    furi_check(event);
     FNApp * app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, event);
 }
 
 void fn_test_scene_life_info_on_enter(void* context) {
+    furi_check(context);
     FNApp * app = context;
     app->fn_tmp_data = fn_life_info_alloc();
     fn_worker_start_thread(app->worker);
@@ -22,6 +25,7 @@ void fn_test_scene_life_info_on_enter(void* context) {
 }
 
 bool fn_test_scene_life_info_on_event(void* context, SceneManagerEvent event) {
+    furi_check(context);
     FNApp* app = context;
     bool success = false;
     if(event.type == SceneManagerEventTypeBack) {
@@ -64,6 +68,7 @@ bool fn_test_scene_life_info_on_event(void* context, SceneManagerEvent event) {
     return success;
 }
 void fn_test_scene_life_info_on_exit(void* context) {
+    furi_check(context);
     FNApp * app = context;
     widget_reset(app->widget);
     fn_worker_stop_thread(app->worker);

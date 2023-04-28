@@ -8,8 +8,7 @@
 #include <furi_hal_rtc.h>
 #define TAG "FN_TOOLS"
 
-#define CHECK_STATUS(status) \
-if(status != 0) return status;
+
 
 
 typedef struct FNAnswer {
@@ -18,6 +17,60 @@ typedef struct FNAnswer {
     uint16_t data_len;
     uint8_t* data;
 } FNAnswer;
+
+typedef struct TXHelper {
+    FNAnswer* fnAnswer;
+    UARTApp* uartApp;
+    FNToolCmdStatus status;
+} TRXHelper;
+
+
+static void free_fn_answer_data(FNAnswer* fn_answer)
+{
+    assert(fn_answer->data);
+    free(fn_answer->data);
+}
+
+static void free_fn_answer(FNAnswer* fn_answer){
+    if(fn_answer->data != NULL){
+        free_fn_answer_data(fn_answer);
+    }
+    free(fn_answer);
+}
+
+static TRXHelper* trx_helper_alloc(FNWorker* worker){
+    TRXHelper* txHelper = malloc(sizeof(TRXHelper));
+    txHelper->uartApp = worker->uart;
+    txHelper->fnAnswer = malloc(sizeof(FNAnswer));
+    txHelper->status = FNToolOk;
+    fn_uart_start_thread(txHelper->uartApp);
+    return txHelper;
+}
+
+static void trx_helper_free(TRXHelper* trxHelper){
+    fn_uart_stop_thread(trxHelper->uartApp);
+    free_fn_answer(trxHelper->fnAnswer);
+    free(trxHelper);
+}
+
+static bool trx_helper_check(TRXHelper* trxHelper){
+    furi_check(trxHelper);
+    return trxHelper->status == FNToolOk;
+}
+
+#define TRX_CHECK(trxHelper)                            \
+if(!trx_helper_check(trxHelper)){                       \
+FNToolCmdStatus status = trxHelper->status;             \
+    trx_helper_free(trxHelper);                         \
+    return status;                                      \
+    }                                                   \
+
+#define TRX_FULL_CHECK(trxHelper, dataLen) \
+    TRX_CHECK(trxHelper);                                       \
+    trxHelper->status = check_errors(trxHelper->fnAnswer);                 \
+    TRX_CHECK(trxHelper);                                                  \
+    tx_helper->status = check_data_len(tx_helper->fnAnswer, dataLen);     \
+    TRX_CHECK(trxHelper);                                                  \
 
 static FNToolCmdStatus check_data_len(FNAnswer* answer, uint16_t expected_length)
 {
@@ -51,18 +104,6 @@ static void log_fn_data(uint8_t* data, uint16_t len, bool is_answer)
 }
 
 
-static void free_fn_answer_data(FNAnswer* fn_answer)
-{
-    assert(fn_answer->data);
-    free(fn_answer->data);
-}
-
-static void free_fn_answer(FNAnswer* fn_answer){
-    if(fn_answer->data != NULL){
-        free_fn_answer_data(fn_answer);
-    }
-    free(fn_answer);
-}
 
 static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t* data, size_t data_len, uint32_t timeout){
     //TODO Рефакторинг и оптимизация (Выглядит как кошмар)
@@ -149,77 +190,72 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
     return true;
 }
 
+
 FNToolCmdStatus fn_tool_get_fn_info(FNError *fn_error, FNWorker* fn_worker, FNInfo* fnInfo){
     furi_check(fn_worker);
     furi_check(fnInfo);
-    FNToolCmdStatus status;
+    furi_check(fn_worker->uart);
+    TRXHelper* tx_helper = trx_helper_alloc(fn_worker);
+
     bool trx_ok;
-    fn_uart_start_thread(fn_worker->uart);
-    FNAnswer* fn_answer = malloc(sizeof(FNAnswer));
-    trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDGetFNStatus, NULL, 0, 300);
+
+    trx_ok = fn_trx(fn_worker, tx_helper->fnAnswer, FN_CMDGetFNStatus, NULL, 0, 300);
     FURI_LOG_D(TAG, "FN_CMDGetFNStatus %d", trx_ok);
-    FURI_LOG_D(TAG, "fn_answer->status %d", fn_answer->status);
-    status = fn_answer->status;
-    if(status!= FNToolOk) return status;
-
-    *fn_error = fn_answer->error;
-    status = check_errors(fn_answer);
-    CHECK_STATUS(status)
-
-    FURI_LOG_D(TAG, "fn_answer->data_len %d", fn_answer->data_len);
-    status = check_data_len(fn_answer, 30);
-    CHECK_STATUS(status);
+    FURI_LOG_D(TAG, "fn_answer->status %d", tx_helper->fnAnswer->status);
+    tx_helper->status = tx_helper->fnAnswer->status;
+    *fn_error = tx_helper->fnAnswer->error;
+    FURI_LOG_D(TAG, "fn_answer->data_len %d", tx_helper->fnAnswer->data_len);
+    TRX_FULL_CHECK(tx_helper, 30);
 
 
-    fnInfo->fn_state = (FNState)fn_answer->data[0];
+    fnInfo->fn_state = (FNState)tx_helper->fnAnswer->data[0];
     //TODO 1 и 2 бит Чёт там про ОФД, оно может и не надо
-    fnInfo->is_session_open = (bool)fn_answer->data[3];
-    fnInfo->fn_warn_flags = fn_answer->data[4];
-    fnInfo->date_time.year = fn_answer->data[5];
-    fnInfo->date_time.mouth = fn_answer->data[6];
-    fnInfo->date_time.date = fn_answer->data[7];
-    fnInfo->date_time.hour = fn_answer->data[8];
-    fnInfo->date_time.minute = fn_answer->data[9];
+    fnInfo->is_session_open = (bool)tx_helper->fnAnswer->data[3];
+    fnInfo->fn_warn_flags = tx_helper->fnAnswer->data[4];
+    fnInfo->date_time.year = tx_helper->fnAnswer->data[5];
+    fnInfo->date_time.mouth = tx_helper->fnAnswer->data[6];
+    fnInfo->date_time.date = tx_helper->fnAnswer->data[7];
+    fnInfo->date_time.hour = tx_helper->fnAnswer->data[8];
+    fnInfo->date_time.minute = tx_helper->fnAnswer->data[9];
     //Считываем СН ФН с 10 по 16 бит
     for(int i = 0; i < 16; ++i) {
-        fnInfo->serial_number[i] = (char)fn_answer->data[10 + i];
+        fnInfo->serial_number[i] = (char)tx_helper->fnAnswer->data[10 + i];
         //FURI_LOG_D(TAG, "FN_SN[%d] = %x", i + 10, (char)fn_answer->data[10 + i]);
     }
     fnInfo->serial_number[17] = (char)'\0';
     uint8_t last_FD[4];
     for(int i = 0; i < 4; ++i) {
-        last_FD[i] = fn_answer->data[(9 + 17) + i];
+        last_FD[i] = tx_helper->fnAnswer->data[(9 + 17) + i];
         FURI_LOG_D(TAG, "last_FD[%d] = %x", i, last_FD[i]);
     }
     fnInfo->last_doc_number = byte_array_to_uint32t_LE(last_FD);
 
     //Get FFD Verion
     FURI_LOG_D(TAG, "GET FFD VERSION");
-    free_fn_answer_data(fn_answer);
-    trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDGetFFD, NULL, 0, 300);
-    *fn_error = fn_answer->error;
+    free_fn_answer_data(tx_helper->fnAnswer);
+    trx_ok = fn_trx(fn_worker, tx_helper->fnAnswer, FN_CMDGetFFD, NULL, 0, 300);
+    *fn_error = tx_helper->fnAnswer->error;
     FURI_LOG_D(TAG, "FN_CMDGetFFD %d", trx_ok);
-    FURI_LOG_D(TAG, "fn_answer->status (getFFD) %d", fn_answer->status);
-    FURI_LOG_D(TAG, "fn_answer->error (getFFD) %d", fn_answer->error);
-    FURI_LOG_D(TAG, "fn_answer->data_len (getFFD) %d", fn_answer->data_len);
+    FURI_LOG_D(TAG, "fn_answer->status (getFFD) %d", tx_helper->fnAnswer->status);
+    FURI_LOG_D(TAG, "fn_answer->error (getFFD) %d", tx_helper->fnAnswer->error);
+    FURI_LOG_D(TAG, "fn_answer->data_len (getFFD) %d", tx_helper->fnAnswer->data_len);
     //log_fn_data(fn_answer->data, fn_answer->data_len, true);
-    status = check_data_len(fn_answer, 2);
-    CHECK_STATUS(status)
-    fnInfo->ffd_version = (FN_FFD)fn_answer->data[0];
-    fnInfo->max_ffd_version = (FN_FFD)fn_answer->data[1];
+    tx_helper->status = check_data_len(tx_helper->fnAnswer, 2);
+    TRX_CHECK(tx_helper)
+    fnInfo->ffd_version = (FN_FFD)tx_helper->fnAnswer->data[0];
+    fnInfo->max_ffd_version = (FN_FFD)tx_helper->fnAnswer->data[1];
 
-    free_fn_answer_data(fn_answer);
-    trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDGetFNFwVersion, NULL, 0, 300);
-    *fn_error = fn_answer->error;
-    status = check_data_len(fn_answer, 17);
-    CHECK_STATUS(status);
+    free_fn_answer_data(tx_helper->fnAnswer);
+    trx_ok = fn_trx(fn_worker, tx_helper->fnAnswer, FN_CMDGetFNFwVersion, NULL, 0, 300);
+    *fn_error = tx_helper->fnAnswer->error;
+    tx_helper->status = check_data_len(tx_helper->fnAnswer, 17);
+    TRX_CHECK(tx_helper);
     for(int i = 0; i < 16; ++i) {
-        fnInfo->fw_version.fw_version[i] = fn_answer->data[i];
+        fnInfo->fw_version.fw_version[i] = tx_helper->fnAnswer->data[i];
     }
-    fnInfo->fw_version.fw_mode = fn_answer->data[16];
-
-    free_fn_answer(fn_answer);
-    fn_uart_stop_thread(fn_worker->uart);
+    fnInfo->fw_version.fw_mode = tx_helper->fnAnswer->data[16];
+    FNToolCmdStatus status = tx_helper->status;
+    trx_helper_free(tx_helper);
 
     return status;
 }
@@ -228,41 +264,41 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     furi_check(fn_worker);
     furi_check(lifeInfo);
     furi_check(fn_worker->fn_info);
-    FNToolCmdStatus status;
-    bool trx_ok;
-    fn_uart_start_thread(fn_worker->uart);
-    FNAnswer* fn_answer = malloc(sizeof(FNAnswer));
-    trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDGetFNEndDate, NULL, 0, 300);
-    FURI_LOG_D(TAG, "FN_CMDGetFNEndDate %d", trx_ok);
-    *fn_error = fn_answer->error;
-    status = check_data_len(fn_answer, 5);
-    CHECK_STATUS(status)
-    status = check_errors(fn_answer);
-    CHECK_STATUS(status)
-    lifeInfo->date_end.year = fn_answer->data[0];
-    lifeInfo->date_end.mouth = fn_answer->data[1];
-    lifeInfo->date_end.day = fn_answer->data[2];
-    lifeInfo->reg_report_ctn_remaining = fn_answer->data[3];
-    lifeInfo->reg_report_ctn = fn_answer->data[4];
 
-    free_fn_answer_data(fn_answer);
-    trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDGetFNMemoryInfo, NULL, 0, 300);
+    bool trx_ok;
+    TRXHelper* trx_helper = trx_helper_alloc(fn_worker);
+
+    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNEndDate, NULL, 0, 300);
+    FURI_LOG_D(TAG, "FN_CMDGetFNEndDate %d", trx_ok);
+    *fn_error = trx_helper->fnAnswer->error;
+    trx_helper->status = check_data_len(trx_helper->fnAnswer, 5);
+    TRX_CHECK(trx_helper);
+    trx_helper->status = check_errors(trx_helper->fnAnswer);
+    TRX_CHECK(trx_helper);
+    lifeInfo->date_end.year = trx_helper->fnAnswer->data[0];
+    lifeInfo->date_end.mouth = trx_helper->fnAnswer->data[1];
+    lifeInfo->date_end.day = trx_helper->fnAnswer->data[2];
+    lifeInfo->reg_report_ctn_remaining = trx_helper->fnAnswer->data[3];
+    lifeInfo->reg_report_ctn = trx_helper->fnAnswer->data[4];
+
+    free_fn_answer_data(trx_helper->fnAnswer);
+    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNMemoryInfo, NULL, 0, 300);
     FURI_LOG_D(TAG, "FN_CMDGetFNMemoryInfo %d", trx_ok);
-    *fn_error = fn_answer->error;
-    status = check_data_len(fn_answer, 9);
-    CHECK_STATUS(status)
-    status = check_errors(fn_answer);
-    CHECK_STATUS(status)
+    *fn_error = trx_helper->fnAnswer->error;
+    trx_helper->status = check_data_len(trx_helper->fnAnswer, 9);
+    TRX_CHECK(trx_helper)
+    trx_helper->status = check_errors(trx_helper->fnAnswer);
+    TRX_CHECK(trx_helper)
     uint8_t uint32tmp[4];
     for(int i = 0; i < 4; ++i) {
-        uint32tmp[i] = fn_answer->data[i];
+        uint32tmp[i] = trx_helper->fnAnswer->data[i];
     }
     lifeInfo->five_year_data_resource = byte_array_to_uint32t_LE(uint32tmp);
     for(int i = 0; i < 4; ++i) {
-        uint32tmp[i] = fn_answer->data[i+4];
+        uint32tmp[i] = trx_helper->fnAnswer->data[i+4];
     }
     lifeInfo->thirty_year_data_resource = byte_array_to_uint32t_LE(uint32tmp);
-    lifeInfo->marking_notifications_resource = fn_answer->data[fn_answer->data_len];
+    lifeInfo->marking_notifications_resource = trx_helper->fnAnswer->data[trx_helper->fnAnswer->data_len];
 
     FuriHalRtcDateTime datetime;
     furi_hal_rtc_get_datetime(&datetime);
@@ -272,20 +308,48 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     tx_datetime_param[2] = datetime.day;
     tx_datetime_param[3] = datetime.hour;
     tx_datetime_param[4] = datetime.minute;
-    free_fn_answer_data(fn_answer);
-    trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDGetFNEndDays, tx_datetime_param, 5, 300);
+    free_fn_answer_data(trx_helper->fnAnswer);
+    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNEndDays, tx_datetime_param, 5, 300);
     FURI_LOG_D(TAG, "FN_CMDGetFNEndDays %d", trx_ok);
-    *fn_error = fn_answer->error;
-    status = check_data_len(fn_answer, 2);
-    CHECK_STATUS(status)
-    status = check_errors(fn_answer);
-    CHECK_STATUS(status)
+    *fn_error = trx_helper->fnAnswer->error;
+    trx_helper->status = check_data_len(trx_helper->fnAnswer, 2);
+    TRX_CHECK(trx_helper);
 
-    lifeInfo->days_to_end = two_uint8t_to_uint16t_BE(fn_answer->data);
+    trx_helper->status = check_errors(trx_helper->fnAnswer);
+    TRX_CHECK(trx_helper)
+
+    lifeInfo->days_to_end = two_uint8t_to_uint16t_BE(trx_helper->fnAnswer->data);
+    //uint8_t flash = 0x16;
+    //trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDFlashMGM, &flash, 1, 300);
 
 
-    free_fn_answer(fn_answer);
-    fn_uart_stop_thread(fn_worker->uart);
+    FNToolCmdStatus status = trx_helper->status;
+    trx_helper_free(trx_helper);
+    return status;
+}
+
+FNToolCmdStatus fn_tool_flash_MGM(FNError *fn_error, FNWorker* fn_worker){
+    furi_check(fn_worker);
+    furi_check(fn_worker->fn_info);
+
+    bool trx_ok;
+
+    TRXHelper* trx_helper = trx_helper_alloc(fn_worker);
+
+    uint8_t flash = 0x16;
+    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDFlashMGM, &flash, 1, 5000);
+
+    FURI_LOG_D(TAG, "FN_CMDFlashMGM %d", trx_ok);
+    *fn_error = trx_helper->fnAnswer->error;
+    trx_helper->status = check_data_len(trx_helper->fnAnswer, 0);
+    TRX_CHECK(trx_helper);
+    trx_helper->status = check_errors(trx_helper->fnAnswer);
+    TRX_CHECK(trx_helper);
+
+
+    FNToolCmdStatus status = trx_helper->status;
+    trx_helper_free(trx_helper);
+
     return status;
 }
 

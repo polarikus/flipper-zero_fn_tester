@@ -10,8 +10,10 @@ typedef enum {
     FNEventRxStreamError = (1 << 3),
     FNEventDetect = (1 << 4),
     FNEventGetLifeInfo = (1 << 5),
+    FNEventFlashMGM = (1 << 6),
     FNEventAll =
-        (FNEventStopThread | FNEventRxDone | FNEventRxEmpty| FNEventRxStreamError | FNEventDetect | FNEventGetLifeInfo),
+        (FNEventStopThread | FNEventRxDone | FNEventRxEmpty| FNEventRxStreamError | FNEventDetect | FNEventGetLifeInfo
+         | FNEventFlashMGM),
     FNEventRxAll =
         (FNEventRxDone | FNEventRxEmpty | FNEventRxStreamError)
 } SPIMemEventEventType;
@@ -96,6 +98,7 @@ static int32_t fn_worker_thread(void* thread_context) {
             if(flags & FNEventStopThread) break;
             if(flags & FNEventDetect) worker->mode_index = FNWorkerModeFNDetect;
             if(flags & FNEventGetLifeInfo) worker->mode_index = FNWorkerModeGetLifeInfo;
+            if(flags & FNEventFlashMGM) worker->mode_index = FNWorkerModeFlashMGM;
             if(fn_worker_modes[worker->mode_index].process) {
                 fn_worker_modes[worker->mode_index].process(worker);
             }
@@ -151,4 +154,16 @@ void fn_worker_get_life_info_start(
     worker->cb_ctx = context;
     worker->fn_answer_data = fn_life_info;
     furi_thread_flags_set(furi_thread_get_id(worker->thread), FNEventGetLifeInfo);
+}
+
+void fn_worker_flash_MGM_start(
+    FNWorker* worker,
+    FNWorkerCallback callback,
+    void* context)
+{
+    furi_check(worker->mode_index == FNWorkerModeIdle);
+    worker->callback = callback;
+    worker->cb_ctx = context;
+
+    furi_thread_flags_set(furi_thread_get_id(worker->thread), FNEventFlashMGM);
 }

@@ -9,7 +9,8 @@
 typedef enum {
     FNWorkerModeIdle,
     FNWorkerModeFNDetect,
-    FNWorkerModeGetLifeInfo
+    FNWorkerModeGetLifeInfo,
+    FNWorkerModeFlashMGM
 } FNWorkerMode;
 
 struct FNWorker {

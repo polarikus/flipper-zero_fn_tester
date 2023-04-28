@@ -18,15 +18,10 @@ void fn_test_scene_detect_on_enter(void* context) {
     fn_worker_start_thread(app->worker);
     fn_worker_fn_detect_start(
         app->fn_info, app->worker, fn_test_scene_chip_detect_callback, app);
-    //spi_mem_worker_start_thread(app->worker);
-    //spi_mem_worker_chip_detect_start(
-      //  app->chip_info, &app->found_chips, app->worker, spi_mem_scene_chip_detect_callback, app);
 }
 
 bool fn_test_scene_detect_on_event(void* context, SceneManagerEvent event) {
     FNApp * app = context;
-    UNUSED(app);
-    UNUSED(fn_test_scene_chip_detect_callback);
     bool success = false;
     if(event.type == SceneManagerEventTypeCustom) {
         success = true;
@@ -37,6 +32,8 @@ bool fn_test_scene_detect_on_event(void* context, SceneManagerEvent event) {
                 scene_manager_next_scene(app->scene_manager, FNAppSceneFNInfo);
             } else if(app->mode == FNModeGetFNLifeInfo){
                 scene_manager_next_scene(app->scene_manager, FNAppSceneLifeInfo);
+            } else if (app->mode == FNModeFlashMGM){
+                scene_manager_next_scene(app->scene_manager, FNAppSceneRunCMD);
             }
            // scene_manager_set_scene_state(app->scene_manager, SPIMemSceneSelectVendor, 0);
             //scene_manager_next_scene(app->scene_manager, SPIMemSceneSelectVendor);

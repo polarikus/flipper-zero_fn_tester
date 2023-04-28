@@ -3,7 +3,6 @@
 //
 #include "fn_i.h"
 
-#define FFD_1_STR "1"
 #define FFD_1_05_STR "1.05"
 #define FFD_1_1_STR "1.1"
 #define FFD_1_2_STR "1.2"
@@ -100,8 +99,6 @@ const char* fn_get_ffd_version_string(const FNInfo* fn)
     switch(fn->ffd_version) {
     case FFD_NONE:
         return "not registered";
-    case FFD_1:
-        return FFD_1_STR;
     case FFD_1_05:
         return FFD_1_05_STR;
     case FFD_1_1:
@@ -116,8 +113,6 @@ const char* fn_get_ffd_version_string(const FNInfo* fn)
 const char* fn_get_max_ffd_version_string(const FNInfo* fn)
 {
     switch(fn->max_ffd_version) {
-    case FFD_1:
-        return FFD_1_STR;
     case FFD_1_05:
         return FFD_1_05_STR;
     case FFD_1_1:

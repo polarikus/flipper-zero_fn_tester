@@ -36,6 +36,12 @@ void fn_test_scene_start_on_enter(void* context) {
         app);
     submenu_add_item(
         app->submenu,
+        "Flash MGM",
+        FNTestSceneStartSubmenuIndexFlashMGM,
+        fn_test_scene_start_submenu_callback,
+        app);
+    submenu_add_item(
+        app->submenu,
         "Wiring",
         FNTestSceneStartSubmenuIndexWiring,
         fn_test_scene_start_submenu_callback,
@@ -77,6 +83,10 @@ bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
             success = true;
         } else if(event.event == FNTestSceneStartSubmenuIndexFNLifeInfo){
             app->mode = FNModeGetFNLifeInfo;
+            scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
+            success = true;
+        }else if(event.event == FNTestSceneStartSubmenuIndexFlashMGM){
+            app->mode = FNModeFlashMGM;
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
             success = true;
         }else if(event.event == FNTestSceneStartSubmenuIndexTest){

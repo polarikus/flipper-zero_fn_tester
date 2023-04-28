@@ -11,11 +11,13 @@
 
 static void fn_worker_fn_detect_process(FNWorker * worker);
 static void fn_worker_get_life_info_process(FNWorker * worker);
+static void fn_worker_flash_mgm_process(FNWorker * worker);
 
 const FNWorkerModeType fn_worker_modes[] = {
     [FNWorkerModeIdle] = {.process = NULL},
     [FNWorkerModeFNDetect] = {.process = fn_worker_fn_detect_process},
-    [FNWorkerModeGetLifeInfo] = {.process = fn_worker_get_life_info_process}
+    [FNWorkerModeGetLifeInfo] = {.process = fn_worker_get_life_info_process},
+    [FNWorkerModeFlashMGM] = {.process = fn_worker_flash_mgm_process},
 };
 
 static void fn_worker_run_callback(FNWorker* worker, FNCustomEventWorker event, FNError error) {
@@ -73,5 +75,21 @@ static void fn_worker_get_life_info_process(FNWorker * worker){
     }
     memcpy(worker->fn_answer_data, life_info_tmp, sizeof(FNLifeInfo));
     fn_life_info_free(life_info_tmp);
+    fn_worker_run_callback(worker, event, fn_error);
+}
+
+static void fn_worker_flash_mgm_process(FNWorker * worker){
+    //furi_check(worker->fn_answer_data);
+    FNCustomEventWorker event = FNCustomEventWorkerFNNotResponse;
+    FNError fn_error = FNOk;
+
+    FNToolCmdStatus cmd_status = fn_tool_flash_MGM(&fn_error, worker);
+
+    if(cmd_status == FNToolOk){
+        event = FNCustomEventWorkerDone;
+    } else if(cmd_status == FNToolFnError){
+        event = FNCustomEventWorkerFNError;
+    }
+
     fn_worker_run_callback(worker, event, fn_error);
 }
