@@ -63,6 +63,9 @@ bool fn_test_scene_life_info_on_event(void* context, SceneManagerEvent event) {
 
             furi_string_free(tmp_string);
             view_dispatcher_switch_to_view(app->view_dispatcher, FNTestViewWidget);
+        } else if(event.event == FNCustomEventWorkerFNNotResponse)
+        {
+            scene_manager_next_scene(app->scene_manager, FNAppSceneTimeout);
         }
     }
     return success;

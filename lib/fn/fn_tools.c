@@ -74,7 +74,11 @@ FNToolCmdStatus status = trxHelper->status;             \
 
 static FNToolCmdStatus check_data_len(FNAnswer* answer, uint16_t expected_length)
 {
-    if(answer->data_len != expected_length) return FNToolWrongFNDataLen;
+    if(answer->data_len != expected_length) {
+
+        FURI_LOG_D(TAG, "WRONG DATA LEN!!! EX %d ACTUAL %d", expected_length, answer->data_len);
+        return FNToolWrongFNDataLen;
+    }
     return FNToolOk;
 }
 
@@ -285,7 +289,7 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNMemoryInfo, NULL, 0, 300);
     FURI_LOG_D(TAG, "FN_CMDGetFNMemoryInfo %d", trx_ok);
     *fn_error = trx_helper->fnAnswer->error;
-    trx_helper->status = check_data_len(trx_helper->fnAnswer, 9);
+    trx_helper->status = check_data_len(trx_helper->fnAnswer, 8);
     TRX_CHECK(trx_helper)
     trx_helper->status = check_errors(trx_helper->fnAnswer);
     TRX_CHECK(trx_helper)
