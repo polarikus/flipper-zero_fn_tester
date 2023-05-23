@@ -34,6 +34,7 @@ FNApp* fn_test_app_alloc(void) {
     app->submenu = submenu_alloc();
     app->widget = widget_alloc();
     app->view_detect = fn_test_view_detect_alloc();
+    app->view_progress = fn_test_view_progress_alloc();
     app->worker = fn_worker_alloc();
     app->popup = popup_alloc();
     app->fn_info = malloc(sizeof(FNInfo));
@@ -65,6 +66,10 @@ FNApp* fn_test_app_alloc(void) {
         app->view_dispatcher,
         FNTestViewDetect,
         fn_test_view_detect_get_view(app->view_detect));
+    view_dispatcher_add_view(
+        app->view_dispatcher,
+        FNTestViewProgress,
+        fn_test_view_progress_get_view(app->view_progress));
 
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
@@ -83,12 +88,14 @@ void fn_test_app_free(FNApp* app) {
     view_dispatcher_remove_view(app->view_dispatcher, FNTestViewPopup);
     view_dispatcher_remove_view(app->view_dispatcher, FNTestViewWidget);
     view_dispatcher_remove_view(app->view_dispatcher, FNTestViewDetect);
+    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewProgress);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewProgress);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewDetect);
     //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewTextInput);
     submenu_free(app->submenu);
     widget_free(app->widget);
     fn_test_view_detect_free(app->view_detect);
+    fn_test_view_progress_free(app->view_progress);
 
     fn_worker_free(app->worker);
 
