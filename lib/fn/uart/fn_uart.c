@@ -91,6 +91,7 @@ static int32_t uart_process(void* p) {
     free(rx_buffer);
     furi_timer_free(timer);
     furi_stream_buffer_free(app->rx_stream);
+    furi_hal_uart_deinit(FuriHalUartIdLPUART1);//TODO Сделать нормальный деинит
     free(app);
     FURI_LOG_D(TAG, "END TASK");
     return 0;
