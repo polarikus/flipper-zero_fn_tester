@@ -4,7 +4,7 @@
 
 #pragma once
 #include "fn_life_info.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_data_types.h"
+#include "data_types/fn_data_types.h"
 
 struct FNLifeInfo {
     Date date_end;

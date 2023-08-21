@@ -6,9 +6,9 @@
 #include "furi.h"
 #include "fn.h"
 #include "fn_commands.h"
-#include "applications_user/fn_test/lib/fn/errors/fn_errors.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_ffd.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_data_types.h"
+#include "errors/fn_errors.h"
+#include "data_types/fn_ffd.h"
+#include "data_types/fn_data_types.h"
 
 /**
  * Версия ПО ФН

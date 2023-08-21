@@ -1,5 +1,5 @@
 #include "fn_test_app_i.h"
-#include "applications_user/fn_test/lib/fn/fn_objects/fn_info/fn_i.h"
+#include "fn_objects/fn_info/fn_i.h"
 #include <furi.h>
 
 #define TAG "FNTest"
@@ -27,7 +27,6 @@ FNApp* fn_test_app_alloc(void) {
     FURI_LOG_D(WORKER_TAG, "Start AppAlloc");
     FNApp* app = malloc(sizeof(FNApp));
 
-
     app->gui = furi_record_open(RECORD_GUI);
     app->notifications = furi_record_open(RECORD_NOTIFICATION);
     app->dialogs = furi_record_open(RECORD_DIALOGS);
@@ -53,19 +52,14 @@ FNApp* fn_test_app_alloc(void) {
         app->view_dispatcher, fn_test_app_back_event_callback);
     view_dispatcher_add_view(
         app->view_dispatcher, FNTestViewSubmenu, submenu_get_view(app->submenu));
-    view_dispatcher_add_view(
-        app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
+    view_dispatcher_add_view(app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
     //view_dispatcher_add_view(
-      //  app->view_dispatcher, FNTestViewDialogEx, dialog_ex_get_view(app->dialog_ex));
-   // view_dispatcher_add_view(
-     //   app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
+    //  app->view_dispatcher, FNTestViewDialogEx, dialog_ex_get_view(app->dialog_ex));
+    // view_dispatcher_add_view(
+    //   app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
+    view_dispatcher_add_view(app->view_dispatcher, FNTestViewWidget, widget_get_view(app->widget));
     view_dispatcher_add_view(
-        app->view_dispatcher, FNTestViewWidget, widget_get_view(app->widget));
-    view_dispatcher_add_view(
-        app->view_dispatcher,
-        FNTestViewDetect,
-        fn_test_view_detect_get_view(app->view_detect));
-
+        app->view_dispatcher, FNTestViewDetect, fn_test_view_detect_get_view(app->view_detect));
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
     scene_manager_next_scene(app->scene_manager, FNAppSceneStart);
@@ -108,7 +102,6 @@ void fn_test_app_free(FNApp* app) {
     furi_record_close(RECORD_GUI);
     furi_record_close(RECORD_NOTIFICATION);
     furi_record_close(RECORD_DIALOGS);
-
 
     //furi_string_free(app->file_path);
 
