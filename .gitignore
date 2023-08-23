@@ -2,3 +2,4 @@
 .idea
 dist
 .vscode
+run_test.sh
