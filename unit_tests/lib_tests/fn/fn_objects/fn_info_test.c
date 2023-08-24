@@ -32,8 +32,7 @@ FNInfo* fnInfo;
 
 static void test_setup(void) {
     fnInfo = malloc(sizeof(FNInfo));
-    UNUSED(uint8TestVal);
-    UNUSED(uint16TestVal);
+    BTV_UNUSED();
 }
 
 static void test_teardown(void) {

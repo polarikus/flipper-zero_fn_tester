@@ -9,7 +9,7 @@ static FNLifeInfo* fnLifeInfo;
 
 static void test_setup(void) {
     fnLifeInfo = malloc(sizeof(FNLifeInfo));
-    UNUSED(testBoolVal);
+    BTV_UNUSED();
 }
 
 static void test_teardown(void) {
