@@ -2,9 +2,9 @@
 // Created by Игорь Данилов on 22.08.2023.
 //
 #include "unit_tests/minunit.h"
+#include "unit_tests/base_test_vars.h"
 #include "fn_objects/fn_info/fn_i.h"
 
-static uint32_t uint32TestVal[] = {0, 4294967295};
 static char* testSn = "999907890201361100";
 static FN_FFD testFFD[] = {FFD_NONE, FFD_1_05, FFD_1_1, FFD_1_2, 100};
 static char* testFFDString[] = {"Not registered", "1.05", "1.1", "1.2", "Unknown"};
@@ -28,12 +28,12 @@ static uint8_t testWarnFlags[] = {
     0b01000000,
     0b10000000};
 
-static bool testBoolVal[] = {true, false};
-
 FNInfo* fnInfo;
 
 static void test_setup(void) {
     fnInfo = malloc(sizeof(FNInfo));
+    UNUSED(uint8TestVal);
+    UNUSED(uint16TestVal);
 }
 
 static void test_teardown(void) {
@@ -90,7 +90,6 @@ MU_TEST(fn_info_fw_version_test) {
         fnInfo->fw_version.fw_mode = testBoolVal[i];
         mu_assert_int_eq(testBoolVal[i], !fn_is_mgm(fnInfo));
     }
-
 }
 
 MU_TEST(fn_info_is_session_open_test) {
@@ -114,7 +113,8 @@ MU_TEST(fn_info_last_doc_number_test) {
 
 MU_TEST(fn_info_last_doc_date_time_test) {
     mu_assert_not_null(fnInfo);
-    fnInfo->date_time.date = 21;//TODO заменить на day да ив вообще совместить структуры Date и Datetime
+    fnInfo->date_time.date =
+        21; //TODO заменить на day да ив вообще совместить структуры Date и Datetime
     fnInfo->date_time.mouth = 8;
     fnInfo->date_time.year = 23;
     fnInfo->date_time.hour = 22;

@@ -21,9 +21,8 @@ typedef struct {
 } UnitTest;
 
 const UnitTest unit_tests[] = {
-        {.name = "fn_info", .entry = run_minunit_test_fn_info},
-        {.name = "fn_life_info", .entry = run_minunit_test_fn_life_info}
-};
+    {.name = "fn_info", .entry = run_minunit_test_fn_info},
+    {.name = "fn_life_info", .entry = run_minunit_test_fn_life_info}};
 
 void minunit_print_progress() {
     static const char progress[] = {'\\', '|', '/', '-'};

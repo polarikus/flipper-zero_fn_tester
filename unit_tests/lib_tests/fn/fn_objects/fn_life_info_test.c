@@ -2,16 +2,14 @@
 // Created by Игорь Данилов on 24.08.2023.
 //
 #include "unit_tests/minunit.h"
+#include "unit_tests/base_test_vars.h"
 #include "fn_objects/life_info/fn_life_info_i.h"
 
-static uint32_t uint32TestVal[] = {0, 4294967295};
-static uint16_t uint16TestVal[] = {0, 65535};
-static uint8_t uint8TestVal[] = {0, 255};
 static FNLifeInfo* fnLifeInfo;
 
 static void test_setup(void) {
-    UNUSED(uint32TestVal);
     fnLifeInfo = malloc(sizeof(FNLifeInfo));
+    UNUSED(testBoolVal);
 }
 
 static void test_teardown(void) {
@@ -77,11 +75,12 @@ MU_TEST(fn_life_info_marking_notifications_resource_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(uint32TestVal); i++) {
         fnLifeInfo->marking_notifications_resource = uint32TestVal[i];
-        mu_assert_int_eq(uint32TestVal[i], fn_life_info_get_marking_notifications_resource(fnLifeInfo));
+        mu_assert_int_eq(
+            uint32TestVal[i], fn_life_info_get_marking_notifications_resource(fnLifeInfo));
     }
 }
 
-MU_TEST_SUITE(fn_life_info_suite){
+MU_TEST_SUITE(fn_life_info_suite) {
     MU_SUITE_CONFIGURE(&test_setup, &test_teardown);
 
     MU_RUN_TEST(fn_life_info_create_test);
