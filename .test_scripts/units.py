@@ -31,6 +31,7 @@ def main():
         flipper.read_until(b">: ").decode("utf-8")
         flipper.write(b"fn_test\r")
         data = flipper.read_until(b">: ").decode("utf-8")
+
         if "`fn_test` command not found," in data:
             logging.error(f"Failed run tests, fn_test app is not running in flipper!")
             sys.exit(1)
@@ -51,7 +52,8 @@ def main():
         total = 0
 
         for line in lines:
-            logging.info(line)
+            if line != ">: ":
+                logging.info(line)
             if "()" in line:
                 total += 1
 

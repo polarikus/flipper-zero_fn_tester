@@ -19,9 +19,7 @@ typedef struct {
     const UnitTestEntry entry;
 } UnitTest;
 
-const UnitTest unit_tests[] = {
-        {.name = "fn_info", .entry = run_minunit_test_fn_info_fill}
-};
+const UnitTest unit_tests[] = {{.name = "fn_info", .entry = run_minunit_test_fn_info_fill}};
 
 void minunit_print_progress() {
     static const char progress[] = {'\\', '|', '/', '-'};
@@ -39,14 +37,12 @@ void minunit_print_fail(const char* str) {
     printf(_FURI_LOG_CLR_E "%s\r\n" _FURI_LOG_CLR_RESET, str);
 }
 
-
 static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
     minunit_run = 0;
     minunit_assert = 0;
     minunit_fail = 0;
     minunit_status = 0;
-
 
     NotificationApp* notification = furi_record_open(RECORD_NOTIFICATION);
     notification_message_block(notification, &sequence_set_only_blue_255);

@@ -9,7 +9,7 @@
 #include "errors/fn_errors.h"
 #include "data_types/fn_ffd.h"
 #include "data_types/fn_data_types.h"
-
+//TODO Описать все структуры и параметры. Поменять неймминги на нормальные
 /**
  * Версия ПО ФН
  * fw_version Версия ПО

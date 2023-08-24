@@ -98,7 +98,7 @@ const char* fn_get_ffd_version_string(const FNInfo* fn)
 {
     switch(fn->ffd_version) {
     case FFD_NONE:
-        return "not registered";
+        return "Not registered";
     case FFD_1_05:
         return FFD_1_05_STR;
     case FFD_1_1:
@@ -106,7 +106,7 @@ const char* fn_get_ffd_version_string(const FNInfo* fn)
     case FFD_1_2:
         return FFD_1_2_STR;
     default:
-        return "unknown";
+        return "Unknown";
     }
 }
 
@@ -120,7 +120,7 @@ const char* fn_get_max_ffd_version_string(const FNInfo* fn)
     case FFD_1_2:
         return FFD_1_2_STR;
     default:
-        return "unknown";
+        return "Unknown";
     }
 }
 
