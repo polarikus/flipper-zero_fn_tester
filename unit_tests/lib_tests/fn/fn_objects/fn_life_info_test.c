@@ -41,7 +41,7 @@ MU_TEST(fn_life_info_days_to_end_test) {
 MU_TEST(fn_life_info_reg_report_ctn_remaining_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(UINT_8_TEST_VAL); i++) {
-        fnLifeInfo->reg_report_ctn_remaining = UINT_8_TEST_VAL[i];
+        fnLifeInfo->reg_report_ctn_remaining = UINT_8_TEST_VAL[i];//Тест максимального и минимального значения
         mu_assert_int_eq(UINT_8_TEST_VAL[i], fn_life_info_get_reg_report_ctn_remaining(fnLifeInfo));
     }
 }
