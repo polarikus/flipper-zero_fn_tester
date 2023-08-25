@@ -32,7 +32,6 @@ FNInfo* fnInfo;
 
 static void test_setup(void) {
     fnInfo = malloc(sizeof(FNInfo));
-    BTV_UNUSED();
 }
 
 static void test_teardown(void) {
@@ -85,29 +84,29 @@ MU_TEST(fn_info_fw_version_test) {
     strcpy(fnInfo->fw_version.fw_version, testFwVersion);
     mu_assert_string_eq(testFwVersion, fn_get_fw_version(fnInfo));
     //Тест на флаг является ли ФН МГМ
-    for(size_t i = 0; i < COUNT_OF(testBoolVal); i++) {
-        fnInfo->fw_version.fw_mode = testBoolVal[i];
-        mu_assert_int_eq(testBoolVal[i], !fn_is_mgm(fnInfo));
+    for(size_t i = 0; i < COUNT_OF(BOOL_TEST_VAL); i++) {
+        fnInfo->fw_version.fw_mode = BOOL_TEST_VAL[i];
+        mu_assert_int_eq(BOOL_TEST_VAL[i], !fn_is_mgm(fnInfo));
     }
 }
 
 MU_TEST(fn_info_is_session_open_test) {
     mu_assert_not_null(fnInfo);
     //Тест флага открытия смены
-    for(size_t i = 0; i < COUNT_OF(testBoolVal); i++) {
-        fnInfo->is_session_open = testBoolVal[i];
-        mu_assert_int_eq(testBoolVal[i], fn_is_session_open(fnInfo));
+    for(size_t i = 0; i < COUNT_OF(BOOL_TEST_VAL); i++) {
+        fnInfo->is_session_open = BOOL_TEST_VAL[i];
+        mu_assert_int_eq(BOOL_TEST_VAL[i], fn_is_session_open(fnInfo));
     }
 }
 
 MU_TEST(fn_info_last_doc_number_test) {
     mu_assert_not_null(fnInfo);
 
-    fnInfo->last_doc_number = uint32TestVal[0]; //Тест максимального значения для uint32
-    mu_assert_int_eq(uint32TestVal[0], fn_get_last_document_number(fnInfo));
+    fnInfo->last_doc_number = UINT_32_TEST_VAL[0]; //Тест максимального значения для uint32
+    mu_assert_int_eq(UINT_32_TEST_VAL[0], fn_get_last_document_number(fnInfo));
 
-    fnInfo->last_doc_number = uint32TestVal[1]; //Тест минимального значения для uint32
-    mu_assert_int_eq(uint32TestVal[1], fn_get_last_document_number(fnInfo));
+    fnInfo->last_doc_number = UINT_32_TEST_VAL[1]; //Тест минимального значения для uint32
+    mu_assert_int_eq(UINT_32_TEST_VAL[1], fn_get_last_document_number(fnInfo));
 }
 
 MU_TEST(fn_info_last_doc_date_time_test) {

@@ -9,7 +9,6 @@ static FNLifeInfo* fnLifeInfo;
 
 static void test_setup(void) {
     fnLifeInfo = malloc(sizeof(FNLifeInfo));
-    BTV_UNUSED();
 }
 
 static void test_teardown(void) {
@@ -33,50 +32,50 @@ MU_TEST(fn_life_info_date_end_test) {
 
 MU_TEST(fn_life_info_days_to_end_test) {
     mu_assert_not_null(fnLifeInfo);
-    for(size_t i = 0; i < COUNT_OF(uint16TestVal); i++) {
-        fnLifeInfo->days_to_end = uint16TestVal[i];
-        mu_assert_int_eq(uint16TestVal[i], fn_life_info_get_days_to_end(fnLifeInfo));
+    for(size_t i = 0; i < COUNT_OF(UINT_16_TEST_VAL); i++) {
+        fnLifeInfo->days_to_end = UINT_16_TEST_VAL[i];
+        mu_assert_int_eq(UINT_16_TEST_VAL[i], fn_life_info_get_days_to_end(fnLifeInfo));
     }
 }
 
 MU_TEST(fn_life_info_reg_report_ctn_remaining_test) {
     mu_assert_not_null(fnLifeInfo);
-    for(size_t i = 0; i < COUNT_OF(uint8TestVal); i++) {
-        fnLifeInfo->reg_report_ctn_remaining = uint8TestVal[i];
-        mu_assert_int_eq(uint8TestVal[i], fn_life_info_get_reg_report_ctn_remaining(fnLifeInfo));
+    for(size_t i = 0; i < COUNT_OF(UINT_8_TEST_VAL); i++) {
+        fnLifeInfo->reg_report_ctn_remaining = UINT_8_TEST_VAL[i];
+        mu_assert_int_eq(UINT_8_TEST_VAL[i], fn_life_info_get_reg_report_ctn_remaining(fnLifeInfo));
     }
 }
 
 MU_TEST(fn_life_info_reg_report_ctn_test) {
     mu_assert_not_null(fnLifeInfo);
-    for(size_t i = 0; i < COUNT_OF(uint8TestVal); i++) {
-        fnLifeInfo->reg_report_ctn = uint8TestVal[i];
-        mu_assert_int_eq(uint8TestVal[i], fn_life_info_get_reg_report_ctn(fnLifeInfo));
+    for(size_t i = 0; i < COUNT_OF(UINT_8_TEST_VAL); i++) {
+        fnLifeInfo->reg_report_ctn = UINT_8_TEST_VAL[i];
+        mu_assert_int_eq(UINT_8_TEST_VAL[i], fn_life_info_get_reg_report_ctn(fnLifeInfo));
     }
 }
 
 MU_TEST(fn_life_info_five_year_data_resource_test) {
     mu_assert_not_null(fnLifeInfo);
-    for(size_t i = 0; i < COUNT_OF(uint32TestVal); i++) {
-        fnLifeInfo->five_year_data_resource = uint32TestVal[i];
-        mu_assert_int_eq(uint32TestVal[i], fn_life_info_get_five_year_data_resource(fnLifeInfo));
+    for(size_t i = 0; i < COUNT_OF(UINT_32_TEST_VAL); i++) {
+        fnLifeInfo->five_year_data_resource = UINT_32_TEST_VAL[i];
+        mu_assert_int_eq(UINT_32_TEST_VAL[i], fn_life_info_get_five_year_data_resource(fnLifeInfo));
     }
 }
 
 MU_TEST(fn_life_info_thirty_year_data_resource_test) {
     mu_assert_not_null(fnLifeInfo);
-    for(size_t i = 0; i < COUNT_OF(uint32TestVal); i++) {
-        fnLifeInfo->thirty_year_data_resource = uint32TestVal[i];
-        mu_assert_int_eq(uint32TestVal[i], fn_life_info_get_thirty_year_data_resource(fnLifeInfo));
+    for(size_t i = 0; i < COUNT_OF(UINT_32_TEST_VAL); i++) {
+        fnLifeInfo->thirty_year_data_resource = UINT_32_TEST_VAL[i];
+        mu_assert_int_eq(UINT_32_TEST_VAL[i], fn_life_info_get_thirty_year_data_resource(fnLifeInfo));
     }
 }
 
 MU_TEST(fn_life_info_marking_notifications_resource_test) {
     mu_assert_not_null(fnLifeInfo);
-    for(size_t i = 0; i < COUNT_OF(uint32TestVal); i++) {
-        fnLifeInfo->marking_notifications_resource = uint32TestVal[i];
+    for(size_t i = 0; i < COUNT_OF(UINT_32_TEST_VAL); i++) {
+        fnLifeInfo->marking_notifications_resource = UINT_32_TEST_VAL[i];
         mu_assert_int_eq(
-            uint32TestVal[i], fn_life_info_get_marking_notifications_resource(fnLifeInfo));
+                UINT_32_TEST_VAL[i], fn_life_info_get_marking_notifications_resource(fnLifeInfo));
     }
 }
 

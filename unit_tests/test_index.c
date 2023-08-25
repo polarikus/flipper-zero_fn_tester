@@ -6,7 +6,7 @@
 #include "minunit_vars.h"
 #include <cli/cli.h>
 #include <notification/notification_messages.h>
-#include <toolbox/args.h>
+//#include <toolbox/args.h>
 
 #define TAG "UnitTests"
 
@@ -83,10 +83,10 @@ static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
 
         // Final Report
         if(minunit_fail == 0) {
-            //notification_message(notification, &sequence_success);
+            notification_message(notification, &sequence_success);
             printf("Status: PASSED\r\n");
         } else {
-            //notification_message(notification, &sequence_error);
+            notification_message(notification, &sequence_error);
             printf("Status: FAILED\r\n");
         }
     }
