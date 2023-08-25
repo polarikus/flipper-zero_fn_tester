@@ -33,7 +33,7 @@ MU_TEST(fn_life_info_date_end_test) {
 MU_TEST(fn_life_info_days_to_end_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(UINT_16_TEST_VAL); i++) {
-        fnLifeInfo->days_to_end = UINT_16_TEST_VAL[i];//Тест максимального и минимального значения
+        fnLifeInfo->days_to_end = UINT_16_TEST_VAL[i]; //Тест максимального и минимального значения
         mu_assert_int_eq(UINT_16_TEST_VAL[i], fn_life_info_get_days_to_end(fnLifeInfo));
     }
 }
@@ -41,15 +41,18 @@ MU_TEST(fn_life_info_days_to_end_test) {
 MU_TEST(fn_life_info_reg_report_ctn_remaining_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(UINT_8_TEST_VAL); i++) {
-        fnLifeInfo->reg_report_ctn_remaining = UINT_8_TEST_VAL[i];//Тест максимального и минимального значения
-        mu_assert_int_eq(UINT_8_TEST_VAL[i], fn_life_info_get_reg_report_ctn_remaining(fnLifeInfo));
+        fnLifeInfo->reg_report_ctn_remaining =
+            UINT_8_TEST_VAL[i]; //Тест максимального и минимального значения
+        mu_assert_int_eq(
+            UINT_8_TEST_VAL[i], fn_life_info_get_reg_report_ctn_remaining(fnLifeInfo));
     }
 }
 
 MU_TEST(fn_life_info_reg_report_ctn_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(UINT_8_TEST_VAL); i++) {
-        fnLifeInfo->reg_report_ctn = UINT_8_TEST_VAL[i];//Тест максимального и минимального значения
+        fnLifeInfo->reg_report_ctn =
+            UINT_8_TEST_VAL[i]; //Тест максимального и минимального значения
         mu_assert_int_eq(UINT_8_TEST_VAL[i], fn_life_info_get_reg_report_ctn(fnLifeInfo));
     }
 }
@@ -58,7 +61,8 @@ MU_TEST(fn_life_info_five_year_data_resource_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(UINT_32_TEST_VAL); i++) {
         fnLifeInfo->five_year_data_resource = UINT_32_TEST_VAL[i];
-        mu_assert_int_eq(UINT_32_TEST_VAL[i], fn_life_info_get_five_year_data_resource(fnLifeInfo));
+        mu_assert_int_eq(
+            UINT_32_TEST_VAL[i], fn_life_info_get_five_year_data_resource(fnLifeInfo));
     }
 }
 
@@ -66,7 +70,8 @@ MU_TEST(fn_life_info_thirty_year_data_resource_test) {
     mu_assert_not_null(fnLifeInfo);
     for(size_t i = 0; i < COUNT_OF(UINT_32_TEST_VAL); i++) {
         fnLifeInfo->thirty_year_data_resource = UINT_32_TEST_VAL[i];
-        mu_assert_int_eq(UINT_32_TEST_VAL[i], fn_life_info_get_thirty_year_data_resource(fnLifeInfo));
+        mu_assert_int_eq(
+            UINT_32_TEST_VAL[i], fn_life_info_get_thirty_year_data_resource(fnLifeInfo));
     }
 }
 
@@ -75,7 +80,7 @@ MU_TEST(fn_life_info_marking_notifications_resource_test) {
     for(size_t i = 0; i < COUNT_OF(UINT_32_TEST_VAL); i++) {
         fnLifeInfo->marking_notifications_resource = UINT_32_TEST_VAL[i];
         mu_assert_int_eq(
-                UINT_32_TEST_VAL[i], fn_life_info_get_marking_notifications_resource(fnLifeInfo));
+            UINT_32_TEST_VAL[i], fn_life_info_get_marking_notifications_resource(fnLifeInfo));
     }
 }
 

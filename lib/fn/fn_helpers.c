@@ -13,8 +13,8 @@ uint16_t calc_crc16(const uint8_t* data, size_t start, size_t end){
     uint16_t crc = 0xffff;
     //furi_assert(start > end);
     if(start > end) furi_crash("calc_crc16: start bit can't be more end bit\r\n");
-    uint8_t* buff = malloc(end - start + 1);//TODO Протестировать
-    for(int i = 0; i < (int)end; ++i) {
+    uint8_t* buff = malloc(end - start + 1);
+    for(size_t i = 0; i < end; ++i) {
         //FURI_LOG_D("calc_crc16", "data[%d] = %x", start + i, data[start + i]);
         buff[i] = data[start + i];
     }
