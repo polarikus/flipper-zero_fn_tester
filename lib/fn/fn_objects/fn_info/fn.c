@@ -13,19 +13,20 @@ typedef enum {
     FNWarnMemoryEnd = 0x04,
     FNWarn_OFD_WaitTimeExceeded = 0x08,
     FNWarnFailureAccordingToFormatLogicalControlData = 0x10,
-    FNWarnSetupKKTRequired = 0x32,
+    FNWarnSetupKKTRequired = 0x20,
     FNWarn_OFD_Canceled = 0x40,
-} FNWarnFlags;
+} FNWarnFlags;//TODO перенести в отдельный header
 
-bool fn_is_warn_flags_not_null(const FNInfo* fn){
+bool fn_is_warn_flags_not_null(const FNInfo* fn){//TODO изменить название, что-то типо fn_is_warn_flags_set
     return (bool)(fn->fn_warn_flags);
 }
 
 void fn_get_warn_flags_str(const FNInfo* fn, FuriString* string)
 {
+    furi_string_reset(string);
     furi_string_cat_printf(string, "[ ");
     if(fn->fn_warn_flags & FNWarnReplaceNeeded) furi_string_cat_printf(string,
-                                                                       "Urgent replacement of FN (before the expiration date 3 days)\n");
+                                                                       "Urgent replacement of FN (before the expiration date 3 days)\n");//TODO Перенести строки в define
     if(fn->fn_warn_flags & FNWarnResourceEnd) furi_string_cat_printf(string,
                                                                      "FN resource exhaustion (before the expiration of 30 days)\n");
     if(fn->fn_warn_flags & FNWarnMemoryEnd) furi_string_cat_printf(string,
@@ -66,6 +67,7 @@ void fn_get_last_document_datetime(const FNInfo* fn, FuriString* string){
     furi_string_cat_printf(string, "%02d.%02d.20%02d %02d:%02d",
     fn->date_time.date, fn->date_time.mouth, fn->date_time.year,
                        fn->date_time.hour, fn->date_time.minute);
+    //TODO Добавить тест для не валидной даты и времени последнего ФД + написать проверку в функции;
 };
 
 void fn_info_copy(FNInfo* dest, const FNInfo* src)
@@ -98,7 +100,7 @@ const char* fn_get_ffd_version_string(const FNInfo* fn)
 {
     switch(fn->ffd_version) {
     case FFD_NONE:
-        return "Not registered";
+        return "Not registered";//TODO перенести в define
     case FFD_1_05:
         return FFD_1_05_STR;
     case FFD_1_1:
@@ -106,7 +108,7 @@ const char* fn_get_ffd_version_string(const FNInfo* fn)
     case FFD_1_2:
         return FFD_1_2_STR;
     default:
-        return "Unknown";
+        return "Unknown";//TODO перенести в define
     }
 }
 
@@ -120,7 +122,7 @@ const char* fn_get_max_ffd_version_string(const FNInfo* fn)
     case FFD_1_2:
         return FFD_1_2_STR;
     default:
-        return "Unknown";
+        return "Unknown";//TODO перенести в define
     }
 }
 

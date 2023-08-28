@@ -23,7 +23,7 @@ typedef struct FwVersion {
 typedef struct DateTime {
     uint8_t year;
     uint8_t mouth;
-    uint8_t date;
+    uint8_t date;//TODO заменить на day да ив вообще совместить структуры Date и Datetime
     uint8_t hour;
     uint8_t minute;
 } DateTime;
