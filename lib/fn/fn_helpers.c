@@ -10,24 +10,17 @@ const char* bool_to_hum(bool b){
 }
 
 uint16_t calc_crc16(const uint8_t* data, size_t start, size_t end){
-    uint16_t crc = 0xffff;
-    //furi_assert(start > end);
     if(start > end) furi_crash("calc_crc16: start bit can't be more end bit\r\n");
-    uint8_t* buff = malloc(end - start + 1);
-    for(size_t i = 0; i < end; ++i) {
-        //FURI_LOG_D("calc_crc16", "data[%d] = %x", start + i, data[start + i]);
-        buff[i] = data[start + i];
-    }
-    while(end-- && end >= start){
-        crc ^= *buff++ << 8;
-        for (int i = 0; i < 8; i++){
-            crc = crc& 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
+    uint16_t crc = 0xffff;
+    end = end-1;//TODO Это хотфикс.(Костыль) Переделать + во всех местах поменять расчёт по массивам.
+    for(size_t i = start; i <= end; ++i) {
+        crc ^= data[i] << 8;
+        for (int j = 0; j < 8; j++){
+            crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
         }
     }
-
-    free(buff);
     return (crc << 8 | crc >> 8); //LE format
-};
+}
 
 bool check_crc(uint16_t crc, const uint8_t* data, size_t shift, size_t len)
 {
