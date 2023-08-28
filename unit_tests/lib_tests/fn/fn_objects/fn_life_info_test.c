@@ -27,7 +27,7 @@ MU_TEST(fn_life_info_date_end_test) {
     FuriString* dateStr = furi_string_alloc();
     fn_life_info_get_end_date(fnLifeInfo, dateStr);
     mu_assert_string_eq("21.08.2023", furi_string_get_cstr(dateStr));
-    //TODO Добавить тест для не валидной даты и времени последнего ФД + написать проверку в функции;
+    furi_string_free(dateStr);
 }
 
 MU_TEST(fn_life_info_days_to_end_test) {
