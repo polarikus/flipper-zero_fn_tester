@@ -13,6 +13,7 @@
 int run_minunit_test_fn_info();
 int run_minunit_test_fn_life_info();
 int run_minunit_test_fn_helpers();
+int run_minunit_test_fn_uart();
 
 typedef int (*UnitTestEntry)();
 
@@ -24,7 +25,8 @@ typedef struct {
 const UnitTest unit_tests[] = {
     {.name = "fn_info", .entry = run_minunit_test_fn_info},
     {.name = "fn_life_info", .entry = run_minunit_test_fn_life_info},
-    {.name = "fn_helpers", .entry = run_minunit_test_fn_helpers}
+    {.name = "fn_helpers", .entry = run_minunit_test_fn_helpers},
+    {.name = "fn_uart", .entry = run_minunit_test_fn_uart}
 
 };
 
