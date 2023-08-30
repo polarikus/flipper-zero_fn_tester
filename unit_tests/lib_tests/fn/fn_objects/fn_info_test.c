@@ -38,7 +38,8 @@ static char* test_warn_flags_strs[] = {
     "OFD canceled (sign is transmitted in Confirmation from OFD)"
 };
 
-FNInfo* fnInfo;
+static FNInfo* fnInfo;
+//TODO Test for fn_info_copy
 
 static void test_setup(void) {
     fnInfo = malloc(sizeof(FNInfo));

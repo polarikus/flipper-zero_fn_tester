@@ -8,11 +8,11 @@
 static FNLifeInfo* fnLifeInfo;
 
 static void test_setup(void) {
-    fnLifeInfo = malloc(sizeof(FNLifeInfo));
+    fnLifeInfo = fn_life_info_alloc();
 }
 
 static void test_teardown(void) {
-    free(fnLifeInfo);
+    fn_life_info_free(fnLifeInfo);
 }
 
 MU_TEST(fn_life_info_create_test) {
