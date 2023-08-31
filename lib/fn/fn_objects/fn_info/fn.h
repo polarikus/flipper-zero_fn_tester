@@ -7,7 +7,7 @@
 
 typedef struct FNInfo FNInfo;
 
-
+//TODO Добавить fn_info_alloc(). Не удобно даже в тестах постоянно руками инитить всё.
 
 bool fn_is_session_open(const FNInfo* fn);
 

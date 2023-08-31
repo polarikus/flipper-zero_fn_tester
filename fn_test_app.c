@@ -1,5 +1,6 @@
 #include "fn_test_app_i.h"
 #include "fn_objects/fn_info/fn_i.h"
+#include "unit_tests/test_index.h"
 #include <furi.h>
 
 #define TAG "FNTest"
@@ -63,6 +64,7 @@ FNApp* fn_test_app_alloc(void) {
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
     scene_manager_next_scene(app->scene_manager, FNAppSceneStart);
+    fn_register_tests();
 
     FURI_LOG_D(WORKER_TAG, "End AppAlloc");
     return app;
@@ -70,6 +72,7 @@ FNApp* fn_test_app_alloc(void) {
 
 void fn_test_app_free(FNApp* app) {
     furi_assert(app);
+    fn_unregister_tests();
     free(app->fn_info);
 
     view_dispatcher_remove_view(app->view_dispatcher, FNTestViewSubmenu);
