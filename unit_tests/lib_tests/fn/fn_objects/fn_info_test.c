@@ -169,7 +169,26 @@ MU_TEST(fn_info_fn_warn_flags_test) {
 }
 
 MU_TEST(fn_info_copy_test) {
-    //TODO Сделать тест
+    FNInfo* fn_info_clone = malloc(sizeof(FNInfo));
+    fn_info_copy(fn_info_clone, fn_info);
+    mu_assert_int_eq(fn_info->fn_state, fn_info_clone->fn_state);
+    mu_assert_int_eq(fn_info->ffd_version, fn_info_clone->ffd_version);
+    mu_assert_int_eq(fn_info->max_ffd_version, fn_info_clone->max_ffd_version);
+    mu_assert_string_eq(fn_info->serial_number, fn_info_clone->serial_number);
+    mu_assert_int_eq(fn_info->fw_version.fw_mode, fn_info_clone->fw_version.fw_mode);
+    mu_assert_string_eq(fn_info->fw_version.fw_version, fn_info_clone->fw_version.fw_version);
+    mu_assert_int_eq(fn_info->is_session_open, fn_info_clone->is_session_open);
+    mu_assert_int_eq(fn_info->last_doc_number, fn_info_clone->last_doc_number);
+
+    mu_assert_int_eq(fn_info->date_time.year, fn_info_clone->date_time.year);
+    mu_assert_int_eq(fn_info->date_time.mouth, fn_info_clone->date_time.mouth);
+    mu_assert_int_eq(fn_info->date_time.date, fn_info_clone->date_time.date);
+    mu_assert_int_eq(fn_info->date_time.hour, fn_info_clone->date_time.hour);
+    mu_assert_int_eq(fn_info->date_time.minute, fn_info_clone->date_time.minute);
+
+    mu_assert_int_eq(fn_info->fn_warn_flags, fn_info_clone->fn_warn_flags);
+
+    free(fn_info_clone);
 }
 
 MU_TEST_SUITE(fn_info_suite) {
