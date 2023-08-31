@@ -50,5 +50,5 @@ void fn_test_scene_detect_on_exit(void* context) {
     FNApp* app = context;
     fn_worker_stop_thread(app->worker);
     notification_message(app->notifications, &sequence_blink_stop);
-    //popup_reset(app->popup);
+    popup_reset(app->popup);
 }

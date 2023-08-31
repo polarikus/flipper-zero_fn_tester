@@ -16,6 +16,7 @@
 #include <gui/modules/text_input.h>
 
 #include "views/fn_test_view_detect.h"
+#include "views/fn_test_view_progress.h"
 
 #include "lib/fn/fn_worker.h"
 #include "lib/fn/fn_objects/fn_info/fn.h"
@@ -55,6 +56,7 @@ struct FNApp {
     void* fn_tmp_data;
 
     FNDetectView* view_detect;
+    FNProgressView* view_progress;
 };
 
 typedef enum {

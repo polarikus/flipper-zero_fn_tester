@@ -341,7 +341,7 @@ FNToolCmdStatus fn_tool_flash_MGM(FNError *fn_error, FNWorker* fn_worker){
     TRXHelper* trx_helper = trx_helper_alloc(fn_worker);
 
     uint8_t flash = 0x16;
-    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDFlashMGM, &flash, 1, 5000);
+    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDFlashMGM, &flash, 1, 30000);
 
     FURI_LOG_D(TAG, "FN_CMDFlashMGM %d", trx_ok);
     *fn_error = trx_helper->fnAnswer->error;

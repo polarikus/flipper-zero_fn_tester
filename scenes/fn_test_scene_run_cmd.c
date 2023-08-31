@@ -18,7 +18,9 @@ void fn_test_scene_run_cmd_on_enter(void* context) {
     furi_check(context);
     FNApp* app = context;
     fn_worker_start_thread(app->worker);
+    view_dispatcher_switch_to_view(app->view_dispatcher, FNTestViewProgress);
     if(app->mode == FNModeFlashMGM) {
+        fn_test_view_progress_set_mode(app->view_progress, FNProgressViewTypeFlash);
         fn_worker_flash_MGM_start(app->worker, fn_test_scene_run_cmd_callback, app);
     }
 }

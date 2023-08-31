@@ -4,6 +4,8 @@
 #include "../fn_test_app_i.h"
 #include "fn_objects/life_info/fn_life_info.h"
 #include "fn_objects/life_info/fn_life_info.h"
+#include "../views/fn_test_view_progress.h"
+
 
 #define FN_TEST_NAME "\e#\e!       Life Info        \e!\n"
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"
@@ -19,7 +21,11 @@ static void
 
 void fn_test_scene_life_info_on_enter(void* context) {
     furi_check(context);
-    FNApp* app = context;
+
+    FNApp * app = context;
+    view_dispatcher_switch_to_view(app->view_dispatcher, FNTestViewProgress);
+    fn_test_view_progress_set_mode(app->view_progress, FNProgressViewTypeWaitData);
+
     app->fn_tmp_data = fn_life_info_alloc();
     fn_worker_start_thread(app->worker);
     fn_worker_get_life_info_start(

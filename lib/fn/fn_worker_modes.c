@@ -36,17 +36,17 @@ static void fn_worker_fn_detect_process(FNWorker * worker){
     FNInfo* fnInfo = malloc(sizeof(FNInfo));
 
     //int ctr = 0;
-    FNToolCmdStatus cmd_status = fn_tool_get_fn_info(&fn_error, worker, fnInfo);
+    FNToolCmdStatus cmd_status = FNToolTimeout;
     //FNToolCmdStatus cmd_status = fn_tool_get_fn_fw(worker, fnInfo);
     FURI_LOG_D(TAG, "cmd_status %d", cmd_status);
-    /*
-    while((cmd_status == FNToolTimeout || cmd_status == FNToolWrongFNDataLen || cmd_status == FNToolWrongCRC) && ctr < 5)
+    int ctr = 0;
+    while(cmd_status != FNToolOk && ctr < 5)
     {
-        if(fn_worker_check_for_stop(worker)) break;
-        cmd_status = fn_tool_get_fn_info(worker, fnInfo);
+        if(fn_worker_check_for_stop(worker)) return;
+        cmd_status = fn_tool_get_fn_info(&fn_error, worker, fnInfo);
         ctr++;
     }
-     */
+
 
     if(cmd_status == FNToolOk){
         event = FNCustomEventWorkerFNIdentified;
