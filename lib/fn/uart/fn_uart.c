@@ -49,6 +49,17 @@ static void fn_init_uart(uint32_t baudrate, void (*cb)(UartIrqEvent ev, uint8_t 
     furi_hal_uart_set_irq_cb(uart_id, cb, ctx);
 }
 
+static void fn_deinit_uart()
+{
+#ifdef FURI_DEBUG
+    FuriHalUartId uart_id = FuriHalUartIdLPUART1;
+#else
+    FuriHalUartId uart_id = FuriHalUartIdUSART1;
+    furi_hal_console_enable();
+#endif
+    furi_hal_uart_deinit(uart_id);
+}
+
 static int32_t uart_process(void* p) {
     UARTApp* uart_app = p;
     FURI_LOG_D(TAG, "START TASK");
@@ -88,10 +99,10 @@ static int32_t uart_process(void* p) {
         //TODO Ускорить UART.Получаем первые 3 байта, там есть длина. Далее ждём, пока стрим не заполнится на эту длину + CRC. Если заполнился - объеденяем буфер
     }
 
+    fn_deinit_uart();
     free(rx_buffer);
     furi_timer_free(timer);
     furi_stream_buffer_free(app->rx_stream);
-    furi_hal_uart_deinit(FuriHalUartIdLPUART1);//TODO Сделать нормальный деинит
     free(app);
     FURI_LOG_D(TAG, "END TASK");
     return 0;
@@ -131,9 +142,6 @@ void fn_uart_stop_thread(UARTApp* app)
 }
 
 void fn_uart_app_free(UARTApp* app) {
-#ifndef FURI_DEBUG
-    furi_hal_console_enable();
-#endif
     furi_check(app);
     furi_check(app->thread);
     furi_thread_free(app->thread);
