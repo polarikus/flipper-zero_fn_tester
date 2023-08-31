@@ -5,13 +5,13 @@
 #include "fn_helpers.h"
 #include "unit_tests/base_test_vars.h"
 
-char* bullToHumValues[] = {"yes", "no"};
-uint8_t testFnAnswer[] = {0x04, 0x13, 0x00, 0x00, 0x66, 0x6E, 0x20, 0x31, 0x2E, 0x32, 0x20, 0x6D,
+char* bull_to_hum_test_values[] = {"yes", "no"};
+uint8_t test_fn_answer[] = {0x04, 0x13, 0x00, 0x00, 0x66, 0x6E, 0x20, 0x31, 0x2E, 0x32, 0x20, 0x6D,
                           0x67, 0x6D, 0x20, 0x30, 0x33, 0x20, 0x20, 0x00, 0x00, 0x07, 0x9E, 0x59};
 
 MU_TEST(bool_to_hum_test) {
     for(size_t i = 0; i < COUNT_OF(BOOL_TEST_VAL); ++i) {
-        mu_assert_string_eq(bullToHumValues[i], bool_to_hum(BOOL_TEST_VAL[i]));
+        mu_assert_string_eq(bull_to_hum_test_values[i], bool_to_hum(BOOL_TEST_VAL[i]));
     }
 }
 
@@ -56,10 +56,11 @@ MU_TEST(byte_array_to_uint32t_LE_test) {
 }
 
 MU_TEST(calc_crc16_test) {
-    uint16_t result = calc_crc16(testFnAnswer, 1, COUNT_OF(testFnAnswer) - 2);
+    uint16_t result = calc_crc16(test_fn_answer, 1, COUNT_OF(test_fn_answer) - 2);
     uint16_t expected;
     uint8_t crcCmd[2] = {
-        testFnAnswer[COUNT_OF(testFnAnswer) - 2], testFnAnswer[COUNT_OF(testFnAnswer) - 1]};
+        test_fn_answer[COUNT_OF(test_fn_answer) - 2],
+        test_fn_answer[COUNT_OF(test_fn_answer) - 1]};
     expected = two_uint8t_to_uint16t_LE(crcCmd);
     mu_assert_int_eq(expected, result);
 }
@@ -67,10 +68,11 @@ MU_TEST(calc_crc16_test) {
 MU_TEST(check_crc_test) {
     uint16_t expected_crc;
     uint8_t crcCmd[2] = {
-        testFnAnswer[COUNT_OF(testFnAnswer) - 2], testFnAnswer[COUNT_OF(testFnAnswer) - 1]};
+        test_fn_answer[COUNT_OF(test_fn_answer) - 2],
+        test_fn_answer[COUNT_OF(test_fn_answer) - 1]};
     expected_crc = two_uint8t_to_uint16t_LE(crcCmd);
     mu_assert(
-        check_crc(expected_crc, testFnAnswer, 1, COUNT_OF(testFnAnswer) - 2),
+        check_crc(expected_crc, test_fn_answer, 1, COUNT_OF(test_fn_answer) - 2),
         "Wrong check_crc result!!!");
 }
 
