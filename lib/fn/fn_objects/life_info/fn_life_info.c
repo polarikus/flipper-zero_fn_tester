@@ -28,6 +28,7 @@ void fn_life_info_get_end_date(const FNLifeInfo* lifeInfo, FuriString* tmp_strin
         furi_string_cat_printf(tmp_string, "%02d.%02d.20%02d",
                                lifeInfo->date_end.day , lifeInfo->date_end.mouth, lifeInfo->date_end.year);
     }
+    //TODO Добавить тест для не валидной даты и времени последнего ФД + написать проверку в функции;
 }
 
 uint8_t fn_life_info_get_reg_report_ctn_remaining(const FNLifeInfo* lifeInfo){

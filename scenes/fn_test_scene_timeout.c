@@ -3,10 +3,8 @@
 //
 #include "../fn_test_app_i.h"
 
-static void fn_test_scene_timeout_widget_callback(
-    GuiButtonType result,
-    InputType type,
-    void* context) {
+static void
+    fn_test_scene_timeout_widget_callback(GuiButtonType result, InputType type, void* context) {
     FNApp* app = context;
     if(type == InputTypeShort) {
         view_dispatcher_send_custom_event(app->view_dispatcher, result);
@@ -29,13 +27,11 @@ bool fn_test_scene_timeout_on_event(void* context, SceneManagerEvent event) {
     bool success = false;
     if(event.type == SceneManagerEventTypeBack) {
         success = true;
-        scene_manager_search_and_switch_to_previous_scene(
-            app->scene_manager, FNAppSceneStart);
+        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, FNAppSceneStart);
     } else if(event.type == SceneManagerEventTypeCustom) {
         success = true;
         if(event.event == GuiButtonTypeLeft) {
-            scene_manager_search_and_switch_to_previous_scene(
-                app->scene_manager, FNAppSceneStart);
+            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, FNAppSceneStart);
         }
     }
     return success;

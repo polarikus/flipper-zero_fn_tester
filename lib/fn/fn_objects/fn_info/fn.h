@@ -1,13 +1,13 @@
 //
 // Created by Игорь Данилов on 23.02.2023.
 //
-#include "../../../../../../furi/furi.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_ffd.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_data_types.h"
+#include "furi.h"
+#include "data_types/fn_ffd.h"
+#include "data_types/fn_data_types.h"
 
 typedef struct FNInfo FNInfo;
 
-
+//TODO Добавить fn_info_alloc(). Не удобно даже в тестах постоянно руками инитить всё.
 
 bool fn_is_session_open(const FNInfo* fn);
 

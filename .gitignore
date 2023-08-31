@@ -1,2 +1,5 @@
 .DS_Store
 .idea
+dist
+.vscode
+.test_scripts/run_test.sh
