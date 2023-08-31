@@ -21,7 +21,7 @@ View* fn_test_view_progress_get_view(FNProgressView* app) {
 static void fn_test_view_progress_draw_callback(Canvas* canvas, void* context) {
     FNDetectViewModel* model = context;
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_icon_animation(canvas, 0, 0, model->icon);
+    //canvas_draw_icon_animation(canvas, 0, 0, model->icon);
     if(model->mode == FNProgressViewTypeWaitData){
         canvas_draw_str_aligned(canvas, 64, 26, AlignLeft, AlignCenter, "Waiting data");
         canvas_draw_str_aligned(canvas, 64, 36, AlignLeft, AlignCenter, "from FN...");
@@ -34,14 +34,12 @@ static void fn_test_view_progress_draw_callback(Canvas* canvas, void* context) {
 
 static void fn_test_view_progress_enter_callback(void* context) {
     FNProgressView* app = context;
-    with_view_model(
-        app->view, FNDetectViewModel * model, { icon_animation_start(model->icon); }, false);
+    UNUSED(app);
 }
 
 static void fn_test_view_progress_exit_callback(void* context) {
     FNProgressView* app = context;
-    with_view_model(
-        app->view, FNDetectViewModel * model, { icon_animation_stop(model->icon); }, false);
+    UNUSED(app);
 }
 
 FNProgressView* fn_test_view_progress_alloc() {
@@ -56,8 +54,6 @@ FNProgressView* fn_test_view_progress_alloc() {
 }
 
 void fn_test_view_progress_free(FNProgressView* app) {
-    with_view_model(
-        app->view, FNDetectViewModel * model, { icon_animation_free(model->icon); }, false);
     view_free(app->view);
     free(app);
 }
