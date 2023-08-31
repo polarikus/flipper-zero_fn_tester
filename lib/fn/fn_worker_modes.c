@@ -4,8 +4,8 @@
 #include "fn_worker_i.h"
 #include "fn_helpers.h"
 #include "fn_tools.h"
-#include "applications_user/fn_test/lib/fn/uart/fn_uart_i.h"
-#include "applications_user/fn_test/lib/fn/fn_objects/fn_info/fn_i.h"
+#include "uart/fn_uart_i.h"
+#include "fn_objects/fn_info/fn_i.h"
 
 #define TAG "FNWorkerModes"
 

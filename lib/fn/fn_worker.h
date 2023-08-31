@@ -4,9 +4,9 @@
 #pragma once
 
 #include <furi.h>
-#include "applications_user/fn_test/lib/fn/fn_objects/fn_info/fn.h"
-#include "applications_user/fn_test/lib/fn/fn_objects/life_info/fn_life_info.h"
-#include "applications_user/fn_test/lib/fn/errors/fn_errors.h"
+#include "fn_objects/fn_info/fn.h"
+#include "fn_objects/life_info/fn_life_info.h"
+#include "errors/fn_errors.h"
 
 typedef struct FNWorker FNWorker;
 

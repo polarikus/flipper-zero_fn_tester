@@ -51,4 +51,4 @@ uint16_t calc_crc16(const uint8_t* data, size_t start, size_t end);
  */
 bool check_crc(uint16_t crc, const uint8_t* data, size_t shift, size_t len);
 
-void prepend_data_to_array(uint8_t **data, size_t old_size, const uint8_t *new_data, size_t new_size);
+void prepend_data_to_array(uint8_t **data, size_t old_size, const uint8_t *new_data, size_t new_size);//TODO доделать

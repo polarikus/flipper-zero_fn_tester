@@ -1,6 +1,5 @@
 #include "../fn_test_app_i.h"
 
-
 void fn_test_scene_wiring_on_enter(void* context) {
     FNApp* app = context;
     widget_add_icon_element(app->widget, 0, 0, &I_Wiring_UART_128x64);

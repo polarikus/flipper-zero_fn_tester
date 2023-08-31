@@ -16,7 +16,7 @@ typedef enum {
 } FNTestSceneStartSubmenuIndex;
 
 static void fn_test_scene_start_submenu_callback(void* context, uint32_t index) {
-    FNApp * app = context;
+    FNApp* app = context;
     view_dispatcher_send_custom_event(app->view_dispatcher, index);
 }
 
@@ -65,7 +65,6 @@ void fn_test_scene_start_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, FNTestViewSubmenu);
 }
 
-
 bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
     FNApp* app = context;
     bool success = false;
@@ -74,22 +73,22 @@ bool fn_test_scene_start_on_event(void* context, SceneManagerEvent event) {
         if(event.event == FNTestSceneStartSubmenuIndexWiring) {
             scene_manager_next_scene(app->scene_manager, FNAppSceneWiring);
             success = true;
-        }else if(event.event == FNTestSceneStartSubmenuIndexAbout) {
+        } else if(event.event == FNTestSceneStartSubmenuIndexAbout) {
             scene_manager_next_scene(app->scene_manager, FNAppSceneAbout);
             success = true;
-        } else if(event.event == FNTestSceneStartSubmenuIndexFNInfo){
+        } else if(event.event == FNTestSceneStartSubmenuIndexFNInfo) {
             app->mode = FNModeGetFNInfo;
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
             success = true;
-        } else if(event.event == FNTestSceneStartSubmenuIndexFNLifeInfo){
+        } else if(event.event == FNTestSceneStartSubmenuIndexFNLifeInfo) {
             app->mode = FNModeGetFNLifeInfo;
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
             success = true;
-        }else if(event.event == FNTestSceneStartSubmenuIndexFlashMGM){
+        } else if(event.event == FNTestSceneStartSubmenuIndexFlashMGM) {
             app->mode = FNModeFlashMGM;
             scene_manager_next_scene(app->scene_manager, FNAppSceneDetect);
             success = true;
-        }else if(event.event == FNTestSceneStartSubmenuIndexTest){
+        } else if(event.event == FNTestSceneStartSubmenuIndexTest) {
             scene_manager_next_scene(app->scene_manager, FNAppSceneTest);
             success = true;
         }
