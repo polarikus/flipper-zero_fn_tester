@@ -35,8 +35,7 @@ static char* test_warn_flags_strs[] = {
     "OFD response timeout exceeded",
     "Refusal according to the format-logical control data (the attribute is transmitted in the Confirmation from the OFD)",
     "KKT setting required (the attribute is transmitted in the Confirmation from the OFD)",
-    "OFD canceled (sign is transmitted in Confirmation from OFD)"
-};
+    "OFD canceled (sign is transmitted in Confirmation from OFD)"};
 
 static FNInfo* fnInfo;
 //TODO Test for fn_info_copy
@@ -122,8 +121,7 @@ MU_TEST(fn_info_last_doc_number_test) {
 
 MU_TEST(fn_info_last_doc_date_time_test) {
     mu_assert_not_null(fnInfo);
-    fnInfo->date_time.date =
-        21;
+    fnInfo->date_time.date = 21;
     fnInfo->date_time.mouth = 8;
     fnInfo->date_time.year = 23;
     fnInfo->date_time.hour = 22;
@@ -148,7 +146,8 @@ MU_TEST(fn_info_fn_warn_flags_test) {
 
         FuriString* expected_str = furi_string_alloc();
         furi_string_cat_printf(expected_str, "[ %s\n ]", test_warn_flags_strs[i]);
-        mu_assert_string_eq(furi_string_get_cstr(expected_str), furi_string_get_cstr(fn_warn_flags_str));
+        mu_assert_string_eq(
+            furi_string_get_cstr(expected_str), furi_string_get_cstr(fn_warn_flags_str));
         furi_string_free(expected_str);
     }
 
@@ -157,15 +156,21 @@ MU_TEST(fn_info_fn_warn_flags_test) {
     }
 
     fn_get_warn_flags_str(fnInfo, fn_warn_flags_str);
-    for (size_t i = 0; i < COUNT_OF(test_warn_flags_strs); ++i) {
-        if (furi_string_search_str(fn_warn_flags_str, test_warn_flags_strs[i]) == FURI_STRING_FAILURE){
+    for(size_t i = 0; i < COUNT_OF(test_warn_flags_strs); ++i) {
+        if(furi_string_search_str(fn_warn_flags_str, test_warn_flags_strs[i]) ==
+           FURI_STRING_FAILURE) {
             FuriString* message = furi_string_alloc();
-            furi_string_cat_printf(message, "String: '%s' not found in fn_warn_flags_str", test_warn_flags_strs[i]);
+            furi_string_cat_printf(
+                message, "String: '%s' not found in fn_warn_flags_str", test_warn_flags_strs[i]);
             mu_fail(furi_string_get_cstr(message));
         }
     }
 
     furi_string_free(fn_warn_flags_str);
+}
+
+MU_TEST(fn_info_copy_test) {
+    //TODO Сделать тест
 }
 
 MU_TEST_SUITE(fn_info_suite) {
@@ -181,6 +186,7 @@ MU_TEST_SUITE(fn_info_suite) {
     MU_RUN_TEST(fn_info_last_doc_number_test);
     MU_RUN_TEST(fn_info_last_doc_date_time_test);
     MU_RUN_TEST(fn_info_fn_warn_flags_test);
+    MU_RUN_TEST(fn_info_copy_test);
 }
 
 int run_minunit_test_fn_info() {
