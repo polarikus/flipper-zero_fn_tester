@@ -33,7 +33,8 @@ MU_TEST(fn_life_info_date_end_test) {
 MU_TEST(fn_life_info_days_to_end_test) {
     mu_assert_not_null(fn_life_info);
     for(size_t i = 0; i < COUNT_OF(UINT_16_TEST_VAL); i++) {
-        fn_life_info->days_to_end = UINT_16_TEST_VAL[i]; //Тест максимального и минимального значения
+        fn_life_info->days_to_end =
+            UINT_16_TEST_VAL[i]; //Тест максимального и минимального значения
         mu_assert_int_eq(UINT_16_TEST_VAL[i], fn_life_info_get_days_to_end(fn_life_info));
     }
 }

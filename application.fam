@@ -13,6 +13,7 @@ App(
     fap_description="Tester for Fiscal Memory",
     fap_author="Igor Danilov",
     fap_weburl="https://github.com/polarikus/flipper-zero_fn_tester",
+    fap_version=(0, 0),
     order=30,
     fap_category="GPIO",
     fap_icon_assets="icons",

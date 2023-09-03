@@ -4,6 +4,7 @@
 #include "unit_tests/minunit.h"
 #include "fn_worker_i.h"
 #include "fn_objects/fn_info/fn_i.h"
+#include "fn_objects/life_info/fn_life_info_i.h"
 #include "unit_tests/fn_mgm_test_params.h"
 
 FNWorker* fn_worker;
@@ -78,7 +79,24 @@ MU_TEST(fn_worker_fn_detect_start_test) {
     free(fn_info);
 }
 
-//TODO LifeInfo тест. Просто нужно сначала починить lifeInfo. А то сейчас если МГМ чистый получаем таймаут
+MU_TEST(fn_worker_fn_life_info_test) {
+    FNLifeInfo* fn_life_info = fn_life_info_alloc();
+    FNInfo* fn_info = malloc(sizeof(FNInfo));
+
+    fn_worker_start_thread(fn_worker);
+    fn_worker_fn_detect_start(fn_info, fn_worker, fn_worker_test_cb, NULL);
+    fn_info_copy(fn_info, fn_worker->fn_info);
+    mu_assert(await_cb(), "await_cb timeout!!!");
+
+    fn_worker_get_life_info_start(fn_life_info, fn_worker, fn_worker_test_cb, NULL);
+    mu_assert(await_cb(), "await_cb timeout!!!");
+    mu_assert_int_between(0, 10, fn_life_info->reg_report_ctn);
+    fn_worker_stop_thread(fn_worker);
+    fn_life_info_free(fn_life_info);
+    free(fn_info);
+}
+
+//TODO LifeInfo тест. Расширить, добавить проверки
 //TODO Добавить тест flashMGM, просто нужно еще написать много сервисов для реги ФН и подключать для тестов чистый МГМ. И флеш делать в конце всех тестов
 
 MU_TEST_SUITE(fn_worker_suite) {
@@ -87,6 +105,8 @@ MU_TEST_SUITE(fn_worker_suite) {
     MU_RUN_TEST(fn_worker_alloc_test);
     MU_RUN_TEST(fn_worker_start_and_stop_thread_test);
     MU_RUN_TEST(fn_worker_fn_detect_start_test);
+    MU_RUN_TEST(fn_worker_fn_life_info_test);
+    UNUSED(fn_worker_fn_detect_start_test);
 }
 
 int run_minunit_test_fn_worker() {

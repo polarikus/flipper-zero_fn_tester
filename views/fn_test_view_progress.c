@@ -22,11 +22,10 @@ static void fn_test_view_progress_draw_callback(Canvas* canvas, void* context) {
     FNDetectViewModel* model = context;
     canvas_set_font(canvas, FontPrimary);
     //canvas_draw_icon_animation(canvas, 0, 0, model->icon);
-    if(model->mode == FNProgressViewTypeWaitData){
+    if(model->mode == FNProgressViewTypeWaitData) {
         canvas_draw_str_aligned(canvas, 64, 26, AlignLeft, AlignCenter, "Waiting data");
         canvas_draw_str_aligned(canvas, 64, 36, AlignLeft, AlignCenter, "from FN...");
-    } else if (model->mode == FNProgressViewTypeFlash)
-    {
+    } else if(model->mode == FNProgressViewTypeFlash) {
         canvas_draw_str_aligned(canvas, 64, 26, AlignLeft, AlignCenter, "Flashing");
         canvas_draw_str_aligned(canvas, 64, 36, AlignLeft, AlignCenter, "MGM...");
     }
@@ -58,10 +57,7 @@ void fn_test_view_progress_free(FNProgressView* app) {
     free(app);
 }
 
-void fn_test_view_progress_set_mode(FNProgressView* app, FNTestProgressViewMode mode){
+void fn_test_view_progress_set_mode(FNProgressView* app, FNTestProgressViewMode mode) {
     with_view_model(
-        app->view,
-        FNDetectViewModel * model,
-        { model->mode = mode; },
-        true);
+        app->view, FNDetectViewModel * model, { model->mode = mode; }, true);
 }
