@@ -313,19 +313,23 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     tx_datetime_param[3] = datetime.hour;
     tx_datetime_param[4] = datetime.minute;
     free_fn_answer_data(trx_helper->fnAnswer);
-    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNEndDays, tx_datetime_param, 5, 300);
-    FURI_LOG_D(TAG, "FN_CMDGetFNEndDays %d", trx_ok);
-    *fn_error = trx_helper->fnAnswer->error;
-    trx_helper->status = check_data_len(trx_helper->fnAnswer, 2);
-    TRX_CHECK(trx_helper);
+    if(fn_get_fn_state_enum(fn_worker->fn_info) != FNStage1 && fn_get_fn_state_enum(fn_worker->fn_info) != FNStage4 ) {
+        trx_ok =
+            fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNEndDays, tx_datetime_param, 5, 300);
+        FURI_LOG_D(TAG, "FN_CMDGetFNEndDays %d", trx_ok);
+        *fn_error = trx_helper->fnAnswer->error;
+        trx_helper->status = check_data_len(trx_helper->fnAnswer, 2);
+        TRX_CHECK(trx_helper);
 
-    trx_helper->status = check_errors(trx_helper->fnAnswer);
-    TRX_CHECK(trx_helper)
+        trx_helper->status = check_errors(trx_helper->fnAnswer);
+        TRX_CHECK(trx_helper)
 
-    lifeInfo->days_to_end = two_uint8t_to_uint16t_BE(trx_helper->fnAnswer->data);
-    //uint8_t flash = 0x16;
-    //trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDFlashMGM, &flash, 1, 300);
-
+        lifeInfo->days_to_end = two_uint8t_to_uint16t_BE(trx_helper->fnAnswer->data);
+        //uint8_t flash = 0x16;
+        //trx_ok = fn_trx(fn_worker, fn_answer, FN_CMDFlashMGM, &flash, 1, 300);
+    } else{
+        lifeInfo->days_to_end = 0;
+    }
 
     FNToolCmdStatus status = trx_helper->status;
     trx_helper_free(trx_helper);
