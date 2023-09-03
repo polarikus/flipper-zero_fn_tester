@@ -1,6 +1,6 @@
 #include "../fn_test_app_i.h"
 
-#define FN_TEST_VERSION_APP "0.1.0-alpha01"
+#define FN_TEST_VERSION_APP "0.0-betta"
 #define FN_TEST_DEVELOPER "Polarikus"
 #define FN_TEST_GITHUB "https://github.com/polarikus/flipper-zero-fn_test"
 #define FN_TEST_NAME "\e#\e!       FN Tester        \e!\n"
