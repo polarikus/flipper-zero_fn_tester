@@ -6,10 +6,10 @@
 #include "furi.h"
 #include "fn.h"
 #include "fn_commands.h"
-#include "applications_user/fn_test/lib/fn/errors/fn_errors.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_ffd.h"
-#include "applications_user/fn_test/lib/fn/data_types/fn_data_types.h"
-
+#include "errors/fn_errors.h"
+#include "data_types/fn_ffd.h"
+#include "data_types/fn_data_types.h"
+//TODO Описать все структуры и параметры. Поменять неймминги на нормальные
 /**
  * Версия ПО ФН
  * fw_version Версия ПО
@@ -23,7 +23,7 @@ typedef struct FwVersion {
 typedef struct DateTime {
     uint8_t year;
     uint8_t mouth;
-    uint8_t date;
+    uint8_t date;//TODO заменить на day да ив вообще совместить структуры Date и Datetime
     uint8_t hour;
     uint8_t minute;
 } DateTime;

@@ -3,7 +3,7 @@
 //
 
 #include "fn_tools.h"
-#include "applications_user/fn_test/lib/fn/uart/fn_uart_i.h"
+#include "uart/fn_uart_i.h"
 #include "fn_helpers.h"
 #include <furi_hal_rtc.h>
 #define TAG "FN_TOOLS"
@@ -289,7 +289,7 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDGetFNMemoryInfo, NULL, 0, 300);
     FURI_LOG_D(TAG, "FN_CMDGetFNMemoryInfo %d", trx_ok);
     *fn_error = trx_helper->fnAnswer->error;
-    trx_helper->status = check_data_len(trx_helper->fnAnswer, 8);
+    trx_helper->status = check_data_len(trx_helper->fnAnswer, 9);
     TRX_CHECK(trx_helper)
     trx_helper->status = check_errors(trx_helper->fnAnswer);
     TRX_CHECK(trx_helper)
@@ -341,7 +341,7 @@ FNToolCmdStatus fn_tool_flash_MGM(FNError *fn_error, FNWorker* fn_worker){
     TRXHelper* trx_helper = trx_helper_alloc(fn_worker);
 
     uint8_t flash = 0x16;
-    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDFlashMGM, &flash, 1, 5000);
+    trx_ok = fn_trx(fn_worker, trx_helper->fnAnswer, FN_CMDFlashMGM, &flash, 1, 30000);
 
     FURI_LOG_D(TAG, "FN_CMDFlashMGM %d", trx_ok);
     *fn_error = trx_helper->fnAnswer->error;

@@ -7,7 +7,7 @@
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"
 
 void fn_test_scene_about_on_enter(void* context) {
-    FNApp * app = context;
+    FNApp* app = context;
     FuriString* tmp_string = furi_string_alloc();
 
     widget_add_text_box_element(
@@ -35,6 +35,6 @@ bool fn_test_scene_about_on_event(void* context, SceneManagerEvent event) {
     return false;
 }
 void fn_test_scene_about_on_exit(void* context) {
-    FNApp * app = context;
+    FNApp* app = context;
     widget_reset(app->widget);
 }

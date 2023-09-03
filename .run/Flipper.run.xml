@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Flipper" type="com.jetbrains.cidr.embedded.customgdbserver.type" factoryName="com.jetbrains.cidr.embedded.customgdbserver.factory" singleton="false" nameIsGenerated="true" PROGRAM_PARAMS="-c &quot;gdb_port 3333&quot; -f interface/stlink.cfg -c &quot;transport select hla_swd&quot; -f $USER_HOME$/.ufbt/current/scripts/debug/stm32wbx.cfg -c &quot;stm32wbx.cpu configure -rtos auto&quot; -c &quot;echo (((READY)))&quot;" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" WORKING_DIR="file://$USER_HOME$/.ufbt/current/scripts/ufbt" PASS_PARENT_ENVS_2="true" PROJECT_NAME="fn_test" TARGET_NAME="Flipper" CONFIG_NAME="Flipper" version="1" RUN_PATH="$USER_HOME$/.ufbt/current/firmware.elf">
+    <custom-gdb-server version="1" gdb-connect=":3333" executable="openocd" warmup-ms="0" download-type="NONE" reset-cmd="monitor reset" reset-type="NEVER">
+      <debugger toolchainName="Flipper" />
+    </custom-gdb-server>
+    <method v="2">
+      <option name="ToolBeforeRunTask" enabled="true" actionId="Tool_External Tools_stm-32-flipper-run" />
+    </method>
+  </configuration>
+</component>
