@@ -62,15 +62,11 @@ FNApp* fn_test_app_alloc(void) {
     view_dispatcher_add_view(app->view_dispatcher, FNTestViewWidget, widget_get_view(app->widget));
     view_dispatcher_add_view(
 
-        app->view_dispatcher,
-        FNTestViewDetect,
-        fn_test_view_detect_get_view(app->view_detect));
+        app->view_dispatcher, FNTestViewDetect, fn_test_view_detect_get_view(app->view_detect));
     view_dispatcher_add_view(
         app->view_dispatcher,
         FNTestViewProgress,
         fn_test_view_progress_get_view(app->view_progress));
-
-
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
     scene_manager_next_scene(app->scene_manager, FNAppSceneStart);
