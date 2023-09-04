@@ -1,16 +1,16 @@
-# Тестер фискального накопителя
-The description will be in Russian, since the application is implemented to test the device, which is available only in Russia
-## Функциональность приложения
-## Информации об ФН
-* Серийный номер
-* Фаза жизни ФН
-* Состояние смены
-* Текущая и максимально доступная версия ФФД 
-* Версия ПО и тип (МГМ или боевой ФН)
-## Информация о жизненном цикле ФН
-* Дата окончания ФН
-* Кол-во регистраций / перерегистраций
-* Оставшееся Кол-во регистраций / перерегистраций
-* Информация об оставшемся ресурсе памяти 
-## Сброс МГМ
-Отправка команды 60 16 для сброса тестового ФН
+# Fiscal drive tester
+Fiscal drive is a device for Russian entrepreneurs, which is installed in cash registers to register receipts and send them to the tax authorities.
+# Application functionality
+## Information about the FN:
+- Serial number 
+- FN life phase 
+- Change status 
+- Current and maximum available version of the FDF 
+- Software version and type (MGM or combat FN)
+## FN life cycle information
+- End date of the FN
+- Number of registrations / re-registrations
+- Remaining number of registrations / re-registrations
+-Information about remaining memory resource
+## Reset MGM:
+- Sending command 60 16 to reset the test FN (MGM)
