@@ -11,6 +11,6 @@ Fiscal drive is a device for Russian entrepreneurs, which is installed in cash r
 - End date of the FN
 - Number of registrations / re-registrations
 - Remaining number of registrations / re-registrations
--Information about remaining memory resource
+- Information about remaining memory resource
 ## Reset MGM:
 - Sending command 60 16 to reset the test FN (MGM)
