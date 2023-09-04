@@ -106,7 +106,7 @@ void fn_register_tests() {
     cli_add_command(cli, "fn_test", CliCommandFlagParallelSafe, fn_test_cli, NULL);
     furi_record_close(RECORD_CLI);
 #else
-    UNUSED(nfc_cli);
+    UNUSED(fn_register_tests);
 #endif
 }
 
@@ -116,6 +116,7 @@ void fn_unregister_tests() {
     cli_delete_command(cli, "fn_test");
     furi_record_close(RECORD_CLI);
 #else
-    UNUSED(nfc_cli);
+    UNUSED(fn_unregister_tests);
+    UNUSED(fn_test_cli);
 #endif
 }

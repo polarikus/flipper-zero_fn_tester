@@ -5,7 +5,7 @@
 #include "unit_tests/base_test_vars.h"
 #include "fn_objects/fn_info/fn_i.h"
 
-static char* test_fn_sn = "999907890201361100";
+static char* test_fn_sn = "99990789020136110";
 static FN_FFD test_ffd[] = {FFD_NONE, FFD_1_05, FFD_1_1, FFD_1_2, 100};
 static char* test_ffd_string[] = {"Not registered", "1.05", "1.1", "1.2", "Unknown"};
 
@@ -17,7 +17,7 @@ static char* tes_fn_stage_string[] = {
     "FN archive is closed (4)",
     "Unknown"};
 
-static char* test_fw_version = "MgmTeest12345789";
+static char* test_fw_version = "MgmTeest1234579";
 static uint8_t test_warn_flags[] = {
     0b00000001,
     0b00000010,
