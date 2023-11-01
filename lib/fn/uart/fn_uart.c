@@ -85,7 +85,7 @@ static int32_t uart_process(void* p) {
         if(events & UARTThreadEventRxStart)
         {
             furi_log_set_level(FuriLogLevelNone);//Из-за логов теряются байты, поэтому отключаем
-            furi_timer_start(timer, furi_ms_to_ticks(uart_app->timeout));
+            furi_timer_start(timer, furi_ms_to_ticks(uart_app->timeout));//TODO Разрабы обещали поменять тики на мс в furi_timer_start
         }
         if(events & UARTThreadEventRxDone){
             furi_log_set_level(old_log_level);//Возвращаем логи
