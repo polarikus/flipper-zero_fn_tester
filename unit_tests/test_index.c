@@ -13,8 +13,10 @@
 int run_minunit_test_fn_info();
 int run_minunit_test_fn_life_info();
 int run_minunit_test_fn_helpers();
+int run_minunit_test_byte_array();
 int run_minunit_test_fn_uart();
 int run_minunit_test_fn_worker();
+
 
 typedef int (*UnitTestEntry)();
 
@@ -27,6 +29,7 @@ const UnitTest unit_tests[] = {
     {.name = "fn_info", .entry = run_minunit_test_fn_info},
     {.name = "fn_life_info", .entry = run_minunit_test_fn_life_info},
     {.name = "fn_helpers", .entry = run_minunit_test_fn_helpers},
+    {.name = "byte_array", .entry = run_minunit_test_byte_array},
     {.name = "fn_uart", .entry = run_minunit_test_fn_uart},
     {.name = "fn_worker", .entry = run_minunit_test_fn_worker}
 
