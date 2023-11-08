@@ -91,6 +91,10 @@ MU_TEST(fn_uart_trx_test) {
     if(rx_len != test_answer_size) {
         printf("[fn_uart_trx_test] rx_len: %d\n", rx_len);
     }
+    for(size_t i = 0; i < rx_len; ++i) {
+        printf("%#04x ", rx_buff[i]);
+    }
+    printf("\n");
     mu_assert(
         rx_len == test_answer_size,
         "rx_len != 36, is fn connected?"); //Коллбек отработал, но не получен ответ от ФН
