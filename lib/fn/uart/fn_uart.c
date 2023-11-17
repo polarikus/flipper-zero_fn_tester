@@ -2,6 +2,7 @@
 // Created by Игорь Данилов on 28.02.2023.
 //
 #include "fn_uart_i.h"
+#include "fn_helpers.h"
 #include "furi_hal_console.h"
 #define TAG "FNUartBus"
 
@@ -10,12 +11,14 @@ typedef enum {
     UARTThreadEventStop = (1 << 0),
     UARTThreadEventRxStart = (1 << 1),
     UARTThreadEventRxDone = (1 << 2),
-    UARTThreadEventAll = UARTThreadEventStop | UARTThreadEventRxStart | UARTThreadEventRxDone
+    UARTThreadEventTimeout = (1 << 3),
+    UARTThreadEventAll = UARTThreadEventStop | UARTThreadEventRxStart | UARTThreadEventRxDone | UARTThreadEventTimeout
 } UARTThreadEvent;
 
 
 typedef struct {
     FuriStreamBuffer* rx_stream;
+    FuriStreamBuffer* msg_start_stream;
     FuriThreadId thread_id;
     FuriHalUartId uart_id;
 } UARTProcess;
@@ -24,6 +27,9 @@ static void fn_uart_irq_cb(UartIrqEvent ev, uint8_t data, void* ctx) {
     UARTProcess* app = ctx;
     if(ev == UartIrqEventRXNE) {
         furi_stream_buffer_send(app->rx_stream, &data, 1, 0);
+        if(!furi_stream_buffer_is_full(app->msg_start_stream) && furi_stream_buffer_bytes_available(app->rx_stream) <= 3){
+            furi_stream_buffer_send(app->msg_start_stream, &data, 1, 0);
+        }
     }
     //Флаг либо есть, либо нет. Выставленный 22 раза флаг == выставленный 1 раз флаг.
 }
@@ -69,9 +75,10 @@ static int32_t uart_process(void* p) {
 
     app->thread_id = furi_thread_get_id(furi_thread_get_current());
     app->rx_stream = furi_stream_buffer_alloc(FN_UART_MAX_PACKAGE_LEN, 1);
+    app->msg_start_stream = furi_stream_buffer_alloc(3, 3);
 
     const uint16_t rx_buffer_size = FN_UART_MAX_PACKAGE_LEN;
-    uint8_t* rx_buffer = malloc(rx_buffer_size);
+    uint8_t rx_buffer[FN_UART_MAX_PACKAGE_LEN] = {0};
     size_t data_len = 0;
 
 
@@ -85,7 +92,42 @@ static int32_t uart_process(void* p) {
         if(events & UARTThreadEventRxStart)
         {
             furi_log_set_level(FuriLogLevelNone);//Из-за логов теряются байты, поэтому отключаем
-            furi_timer_start(timer, furi_ms_to_ticks(uart_app->timeout));//TODO Разрабы обещали поменять тики на мс в furi_timer_start
+            //furi_timer_start(timer, pdMS_TO_TICKS(uart_app->timeout));
+
+            size_t msg_start_len = furi_stream_buffer_receive(app->msg_start_stream, rx_buffer, 3, uart_app->timeout);
+            if(msg_start_len == 3 && rx_buffer[0] == 0x04){
+                uint8_t msg_len_buff[2] = {0};
+                msg_len_buff[0] = rx_buffer[1];
+                msg_len_buff[1] = rx_buffer[2];
+
+                size_t msg_len = two_uint8t_to_uint16t_BE(msg_len_buff);
+                //furi_stream_set_trigger_level(app->rx_stream, msg_len + 1);
+
+                uint32_t timeout = uart_app->timeout;
+                size_t ba = 0;
+                while(timeout != 0){
+                    if(ba == msg_len + 5) break;
+                    furi_delay_ms(10);
+                    timeout = timeout - 100;
+                    ba = furi_stream_buffer_bytes_available(app->rx_stream);
+                }
+
+                data_len = furi_stream_buffer_receive(app->rx_stream, rx_buffer, msg_len + 5, uart_app->timeout);
+                uart_app->state = UARTModeRxDone;
+                if(timeout > 0){
+                    if(uart_app->rx_cmlt_cb) uart_app->rx_cmlt_cb(rx_buffer, data_len, uart_app->cb_ctx);
+                } else{
+                    if(uart_app->rx_cmlt_cb) uart_app->rx_cmlt_cb(rx_buffer, 0, uart_app->cb_ctx);
+                }
+
+                furi_stream_buffer_reset(app->rx_stream);
+                uart_app->state = UARTModeIdle;
+            } else{
+                uart_app->state = UARTModeRxDone;
+                if(uart_app->rx_cmlt_cb) uart_app->rx_cmlt_cb(rx_buffer, data_len, uart_app->cb_ctx);
+                furi_stream_buffer_reset(app->rx_stream);
+                uart_app->state = UARTModeIdle;
+            }
         }
         if(events & UARTThreadEventRxDone){
             furi_log_set_level(old_log_level);//Возвращаем логи
@@ -100,9 +142,9 @@ static int32_t uart_process(void* p) {
     }
 
     fn_deinit_uart();
-    free(rx_buffer);
     furi_timer_free(timer);
     furi_stream_buffer_free(app->rx_stream);
+    furi_stream_buffer_free(app->msg_start_stream);
     free(app);
     FURI_LOG_D(TAG, "END TASK");
     return 0;
