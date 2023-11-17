@@ -1,6 +1,7 @@
 //
 // Created by Игорь Данилов on 13.03.2023.
 //
+#pragma once
 #include "furi.h"
 
 typedef struct FNLifeInfo FNLifeInfo;
