@@ -114,9 +114,9 @@ UARTApp* fn_uart_app_alloc() {
     uart_app->timeout = 0;
     uart_app->baudrate = 115200;
 #ifndef FURI_DEBUG
-    uart_app->uart_id = FuriHalUartIdUSART1;
+    uart_app->uart_id = FuriHalSerialIdUsart;
 #else
-    uart_app->uart_id = FuriHalUartIdLPUART1;
+    uart_app->uart_id = FuriHalSerialIdLpuart;
 #endif
     uart_app->thread = furi_thread_alloc_ex("FN UART thread", 1 * 1024, uart_process, uart_app);
     uart_app->state = UARTModeIdle;

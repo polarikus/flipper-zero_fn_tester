@@ -18,7 +18,7 @@ typedef enum {
 struct UARTApp {
     //FuriStreamBuffer* rx_stream;
     FuriThread* thread;
-    FuriHalUartId uart_id;
+    FuriHalSerialId uart_id;
     uint32_t baudrate;
     uint32_t timeout;
     UARTState state;
