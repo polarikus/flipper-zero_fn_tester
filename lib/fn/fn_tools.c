@@ -217,8 +217,8 @@ FNToolCmdStatus fn_tool_get_fn_info(FNError *fn_error, FNWorker* fn_worker, FNIn
     fnInfo->is_session_open = (bool)tx_helper->fnAnswer->data[3];
     fnInfo->fn_warn_flags = tx_helper->fnAnswer->data[4];
     fnInfo->date_time.year = tx_helper->fnAnswer->data[5];
-    fnInfo->date_time.mouth = tx_helper->fnAnswer->data[6];
-    fnInfo->date_time.date = tx_helper->fnAnswer->data[7];
+    fnInfo->date_time.month = tx_helper->fnAnswer->data[6];
+    fnInfo->date_time.day = tx_helper->fnAnswer->data[7];
     fnInfo->date_time.hour = tx_helper->fnAnswer->data[8];
     fnInfo->date_time.minute = tx_helper->fnAnswer->data[9];
     //Считываем СН ФН с 10 по 16 бит
@@ -304,7 +304,7 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     lifeInfo->thirty_year_data_resource = byte_array_to_uint32t_LE(uint32tmp);
     lifeInfo->marking_notifications_resource = trx_helper->fnAnswer->data[trx_helper->fnAnswer->data_len];
 
-    FuriHalRtcDateTime datetime;
+    DateTime datetime;
     furi_hal_rtc_get_datetime(&datetime);
     uint8_t tx_datetime_param[5];
     tx_datetime_param[0] = (uint8_t)(datetime.year % 100);
