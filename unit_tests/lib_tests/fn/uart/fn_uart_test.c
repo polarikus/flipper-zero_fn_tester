@@ -56,10 +56,10 @@ MU_TEST(fn_uart_start_and_stop_thread_test) {
     mu_assert(
         furi_thread_get_state(fn_uart->thread) == FuriThreadStateRunning, "FN UART not started!");
 #ifndef FURI_DEBUG
-    mu_assert(fn_uart->uart_id == FuriHalSerialIdUsart, "FN UART ID is not FuriHalUartIdUSART1!!!");
+    mu_assert(fn_uart->serial_id == FuriHalSerialIdUsart, "FN UART ID is not FuriHalUartIdUSART1!!!");
 #else
     mu_assert(
-        fn_uart->uart_id == FuriHalSerialIdLpuart, "FN UART ID is not FuriHalUartIdLPUART1!!!");
+        fn_uart->serial_id == FuriHalSerialIdLpuart, "FN UART ID is not FuriHalUartIdLPUART1!!!");
 #endif
     fn_uart_stop_thread(fn_uart);
     mu_assert(

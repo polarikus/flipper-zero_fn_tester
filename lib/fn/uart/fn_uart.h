@@ -6,6 +6,7 @@
 
 #include "furi.h"
 #include "furi_hal_serial.h"
+#include <furi_hal_serial_control.h>
 #include "fn_worker.h"
 
 #define FN_UART_MAX_PACKAGE_LEN 250
