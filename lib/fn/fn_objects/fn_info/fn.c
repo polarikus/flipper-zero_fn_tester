@@ -65,7 +65,7 @@ FNState fn_get_fn_state_enum(const FNInfo* fn)
 
 void fn_get_last_document_datetime(const FNInfo* fn, FuriString* string){
     furi_string_cat_printf(string, "%02d.%02d.20%02d %02d:%02d",
-    fn->date_time.date, fn->date_time.mouth, fn->date_time.year,
+    fn->date_time.day, fn->date_time.month, fn->date_time.year,
                        fn->date_time.hour, fn->date_time.minute);
     //TODO Добавить тест для не валидной даты и времени последнего ФД + написать проверку в функции;
 };

@@ -119,7 +119,7 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
     if(data_len > 0){
         uint8_t tx_data_len[2];
         if(data == NULL) furi_crash("fn_trx() Data must be NULL if data_len > 0!");
-        uint16t_BE_to_uint8t_bytes((u_int16_t)data_len + 1, tx_data_len);
+        uint16t_BE_to_uint8t_bytes((uint16_t)data_len + 1, tx_data_len);
         add_bytes_to_arr(tx, 1, tx_size, tx_data_len, 2);
         add_bytes_to_arr(tx, 4, tx_size, data, data_len);
     } else{
