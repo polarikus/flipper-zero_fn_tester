@@ -67,3 +67,4 @@ typedef enum {
     FNTestViewProgress,
     FNTestViewDetect
 } FNAppView;
+//TODO bit_buffer в прошивке флиппера есть.
