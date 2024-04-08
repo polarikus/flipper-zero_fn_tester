@@ -27,6 +27,7 @@ static void fn_worker_run_callback(FNWorker* worker, FNCustomEventWorker event, 
 }
 
 static void fn_worker_fn_detect_process(FNWorker * worker){
+    //furi_check(0, TAG" fn_worker_fn_detect_process");
     furi_assert(worker);
     furi_assert(worker->fn_info);
     FNCustomEventWorker event = FNCustomEventWorkerFNNotResponse;
@@ -63,7 +64,7 @@ static void fn_worker_fn_detect_process(FNWorker * worker){
 }
 
 static void fn_worker_get_life_info_process(FNWorker * worker){
-    furi_check(worker->fn_answer_data);
+    furi_check(worker->fn_answer_data, TAG" fn_worker_get_life_info_process");
     FNCustomEventWorker event = FNCustomEventWorkerFNNotResponse;
     FNLifeInfo* life_info_tmp = fn_life_info_alloc();
     FNError fn_error = FNOk;

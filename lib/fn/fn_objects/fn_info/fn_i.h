@@ -9,6 +9,7 @@
 #include "errors/fn_errors.h"
 #include "data_types/fn_ffd.h"
 #include "data_types/fn_data_types.h"
+#include "datetime.h"
 //TODO Описать все структуры и параметры. Поменять неймминги на нормальные
 /**
  * Версия ПО ФН
@@ -19,14 +20,6 @@ typedef struct FwVersion {
     char fw_version[16];
     uint8_t fw_mode;
 } FNFwVersion;
-
-typedef struct DateTime {
-    uint8_t year;
-    uint8_t mouth;
-    uint8_t date;//TODO заменить на day да ив вообще совместить структуры Date и Datetime
-    uint8_t hour;
-    uint8_t minute;
-} DateTime;
 
 /**
  * Структура с основной информацией об ФН, необходима для исполнения остальных команд

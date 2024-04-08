@@ -120,8 +120,8 @@ MU_TEST(fn_info_last_doc_number_test) {
 
 MU_TEST(fn_info_last_doc_date_time_test) {
     mu_assert_not_null(fn_info);
-    fn_info->date_time.date = 21;
-    fn_info->date_time.mouth = 8;
+    fn_info->date_time.day = 21;
+    fn_info->date_time.month = 8;
     fn_info->date_time.year = 23;
     fn_info->date_time.hour = 22;
     fn_info->date_time.minute = 59;
@@ -181,8 +181,8 @@ MU_TEST(fn_info_copy_test) {
     mu_assert_int_eq(fn_info->last_doc_number, fn_info_clone->last_doc_number);
 
     mu_assert_int_eq(fn_info->date_time.year, fn_info_clone->date_time.year);
-    mu_assert_int_eq(fn_info->date_time.mouth, fn_info_clone->date_time.mouth);
-    mu_assert_int_eq(fn_info->date_time.date, fn_info_clone->date_time.date);
+    mu_assert_int_eq(fn_info->date_time.month, fn_info_clone->date_time.month);
+    mu_assert_int_eq(fn_info->date_time.day, fn_info_clone->date_time.day);
     mu_assert_int_eq(fn_info->date_time.hour, fn_info_clone->date_time.hour);
     mu_assert_int_eq(fn_info->date_time.minute, fn_info_clone->date_time.minute);
 

@@ -119,7 +119,7 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
     if(data_len > 0){
         uint8_t tx_data_len[2];
         if(data == NULL) furi_crash("fn_trx() Data must be NULL if data_len > 0!");
-        uint16t_BE_to_uint8t_bytes((u_int16_t)data_len + 1, tx_data_len);
+        uint16t_BE_to_uint8t_bytes((uint16_t)data_len + 1, tx_data_len);
         add_bytes_to_arr(tx, 1, tx_size, tx_data_len, 2);
         add_bytes_to_arr(tx, 4, tx_size, data, data_len);
     } else{
@@ -196,9 +196,9 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
 
 
 FNToolCmdStatus fn_tool_get_fn_info(FNError *fn_error, FNWorker* fn_worker, FNInfo* fnInfo){
-    furi_check(fn_worker);
-    furi_check(fnInfo);
-    furi_check(fn_worker->uart);
+    furi_check(fn_worker, TAG" fn_tool_get_fn_info | fn_worker");
+    furi_check(fnInfo, TAG" fn_tool_get_fn_info | fnInfo");
+    furi_check(fn_worker->uart, TAG" fn_tool_get_fn_info | fn_worker->uart");
     TRXHelper* tx_helper = trx_helper_alloc(fn_worker);
 
     bool trx_ok;
@@ -217,8 +217,8 @@ FNToolCmdStatus fn_tool_get_fn_info(FNError *fn_error, FNWorker* fn_worker, FNIn
     fnInfo->is_session_open = (bool)tx_helper->fnAnswer->data[3];
     fnInfo->fn_warn_flags = tx_helper->fnAnswer->data[4];
     fnInfo->date_time.year = tx_helper->fnAnswer->data[5];
-    fnInfo->date_time.mouth = tx_helper->fnAnswer->data[6];
-    fnInfo->date_time.date = tx_helper->fnAnswer->data[7];
+    fnInfo->date_time.month = tx_helper->fnAnswer->data[6];
+    fnInfo->date_time.day = tx_helper->fnAnswer->data[7];
     fnInfo->date_time.hour = tx_helper->fnAnswer->data[8];
     fnInfo->date_time.minute = tx_helper->fnAnswer->data[9];
     //Считываем СН ФН с 10 по 16 бит
@@ -304,7 +304,7 @@ FNToolCmdStatus fn_tool_get_fn_life_data(FNError *fn_error, FNWorker* fn_worker,
     lifeInfo->thirty_year_data_resource = byte_array_to_uint32t_LE(uint32tmp);
     lifeInfo->marking_notifications_resource = trx_helper->fnAnswer->data[trx_helper->fnAnswer->data_len];
 
-    FuriHalRtcDateTime datetime;
+    DateTime datetime;
     furi_hal_rtc_get_datetime(&datetime);
     uint8_t tx_datetime_param[5];
     tx_datetime_param[0] = (uint8_t)(datetime.year % 100);

@@ -1,5 +1,7 @@
-.DS_Store
-.idea
-dist
+dist/*
 .vscode
-.test_scripts/run_test.sh
+.clang-format
+.editorconfig
+.env
+.ufbt
+.test_scripts
