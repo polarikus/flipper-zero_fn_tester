@@ -19,7 +19,6 @@ typedef struct {
     FuriStreamBuffer* rx_stream;
     FuriThreadId thread_id;
     FuriHalSerialId serial_id;
-    FuriHalSerialHandle* serial_handle;
 } UARTProcess;
 
 static void usb_uart_on_irq_rx_dma_cb(
@@ -44,7 +43,7 @@ static void usb_uart_on_irq_rx_dma_cb(
 }
 
 static void timer_timeout(void* ctx) {
-    furi_check(ctx);
+    furi_check(ctx, TAG" timer_timeout | ctx");
     UARTProcess* app = ctx;
     FURI_LOG_D(TAG, "TIMEOUT_CB");
     furi_thread_flags_set(app->thread_id, UARTThreadEventRxDone);
@@ -62,32 +61,29 @@ static void console_enable() {
     furi_record_close(RECORD_CLI);
 }
 
-static void fn_init_uart(uint32_t baudrate, void* ctx) {
+static void fn_init_uart(uint32_t baudrate, UARTApp* app) {
 #ifdef FURI_DEBUG
     FuriHalSerialId serial_id = FuriHalSerialIdLpuart;
+    UNUSED(console_disable);
 #else
     FuriHalSerialId serial_id = FuriHalSerialIdUsart;
     console_disable();
 #endif
-    furi_check(baudrate > 0);
-    UARTProcess* uart_process = (UARTProcess*)ctx;
+    furi_check(baudrate > 0, TAG" baudrate > 0");
 
-    furi_check(!uart_process->serial_handle);
-    uart_process->serial_handle = furi_hal_serial_control_acquire(serial_id);
-    furi_check(uart_process->serial_handle);
+    furi_check(!app->serial_handle, TAG" !uart_process->serial_handle");
+    app->serial_handle = furi_hal_serial_control_acquire(serial_id);
+    furi_check(app->serial_handle, TAG" uart_process->serial_handle");
 
-    furi_hal_serial_init(uart_process->serial_handle, baudrate);
-    furi_hal_serial_dma_rx_start(uart_process->serial_handle,
-                                 usb_uart_on_irq_rx_dma_cb, uart_process, true);
+    furi_hal_serial_init(app->serial_handle, baudrate);
 }
 
-static void fn_deinit_uart(void* ctx)
+static void fn_deinit_uart(UARTApp* uart_app)
 {
-    UARTProcess* uart_process = (UARTProcess*)ctx;
 
-    furi_hal_serial_deinit(uart_process->serial_handle);
-    furi_hal_serial_control_release(uart_process->serial_handle);
-    uart_process->serial_handle = NULL;
+    furi_hal_serial_deinit(uart_app->serial_handle);
+    furi_hal_serial_control_release(uart_app->serial_handle);
+    uart_app->serial_handle = NULL;
 
     console_enable();
 }
@@ -97,10 +93,13 @@ static int32_t uart_process(void* p) {
     FURI_LOG_D(TAG, "START TASK");
 
     UARTProcess* app = malloc(sizeof(UARTProcess));
-    fn_init_uart(uart_app->baudrate, app);
 
     app->thread_id = furi_thread_get_id(furi_thread_get_current());
     app->rx_stream = furi_stream_buffer_alloc(FN_UART_MAX_PACKAGE_LEN, 1);
+
+
+    furi_hal_serial_dma_rx_start(uart_app->serial_handle,
+                                 usb_uart_on_irq_rx_dma_cb, app, true);
 
     const uint16_t rx_buffer_size = FN_UART_MAX_PACKAGE_LEN;
     uint8_t* rx_buffer = malloc(rx_buffer_size);
@@ -131,7 +130,7 @@ static int32_t uart_process(void* p) {
         //TODO Ускорить UART.Получаем первые 3 байта, там есть длина. Далее ждём, пока стрим не заполнится на эту длину + CRC. Если заполнился - объеденяем буфер
     }
 
-    fn_deinit_uart(app);
+    furi_hal_serial_dma_rx_stop(uart_app->serial_handle);
     free(rx_buffer);
     furi_timer_free(timer);
     furi_stream_buffer_free(app->rx_stream);
@@ -150,6 +149,8 @@ UARTApp* fn_uart_app_alloc() {
 #else
     uart_app->serial_id = FuriHalSerialIdLpuart;
 #endif
+    fn_init_uart(uart_app->baudrate, uart_app);
+
     uart_app->thread = furi_thread_alloc_ex("FN UART thread", 1 * 1024, uart_process, uart_app);
     uart_app->state = UARTModeIdle;
     furi_thread_set_priority(uart_app->thread, FuriThreadPriorityIsr);
@@ -158,33 +159,35 @@ UARTApp* fn_uart_app_alloc() {
 
 void fn_uart_start_thread(UARTApp* app)
 {
-    furi_check(app);
-    furi_check(app->thread);
-    furi_check(furi_thread_get_state(app->thread) != FuriThreadStateRunning);
+    furi_check(app, TAG" app null");
+    furi_check(app->thread, TAG" app->thread");
+    furi_check(furi_thread_get_state(app->thread) != FuriThreadStateRunning, TAG" Thread nr");
     furi_thread_start(app->thread);
 }
 
 void fn_uart_stop_thread(UARTApp* app)
 {
-    furi_check(app);
-    furi_check(app->thread);
+    furi_check(app, TAG" fn_uart_stop_thread | app");
+    furi_check(app->thread, TAG" fn_uart_stop_thread | app->thread");
     furi_thread_flags_set(furi_thread_get_id(app->thread), UARTThreadEventStop);
     furi_thread_join(app->thread);
     FURI_LOG_D(TAG, "uart thread stopped");
 }
 
 void fn_uart_app_free(UARTApp* app) {
-    furi_check(app);
-    furi_check(app->thread);
+    furi_check(app, TAG" fn_uart_app_free | app");
+    furi_check(app->thread, TAG"fn_uart_app_free | app->thread");
+    fn_deinit_uart(app);
     furi_thread_free(app->thread);
     free(app);
 }
 
 bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t timeout) {
     FURI_LOG_D(TAG, "START TRX");
-    furi_check(app);
-    furi_check(tx_buff_size > 0);
-    furi_check(timeout > 0);
+    furi_check(app, TAG" fn_uart_trx | app");
+    furi_check(tx_buff_size > 0, TAG"fn_uart_trx | tx_buff_size");
+    furi_check(timeout > 0, TAG" fn_uart_trx | timeout");
+    furi_check(app->serial_handle, TAG" fn_uart_trx | app->serial_handle");
     bool result = true;
     FURI_LOG_D(TAG, "tx_buff[3] = %x", tx_buff[3]);
     if(app->state != UARTModeIdle)
@@ -196,7 +199,9 @@ bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t t
 
     app->state = UARTModeTx;
     if(furi_thread_flags_set(furi_thread_get_id(app->thread), UARTThreadEventRxStart) != FuriStatusOk ) result = false;
-    //furi_hal_serial_tx(app->, tx_buff, tx_buff_size); //TODO FTF
+    FURI_LOG_D(TAG, "Start tx");
+    furi_hal_serial_tx(app->serial_handle, tx_buff, tx_buff_size);
+    FURI_LOG_D(TAG, "Stop tx");
     app->state = UARTModeRx;
     FURI_LOG_D(TAG, "END TRX %d", result);
 
@@ -204,7 +209,7 @@ bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t t
 }
 
 void fn_uart_set_rx_callback(UARTApp* app, void (*rx_cb)(uint8_t* buf, size_t len, void* context), void* context) {
-    furi_check(app);
+    furi_check(app, TAG" fn_uart_set_rx_callback | app ");
     app->rx_cmlt_cb = rx_cb;
     app->cb_ctx = context;
 }

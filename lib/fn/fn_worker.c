@@ -136,7 +136,7 @@ void fn_worker_fn_detect_start(
     FNWorkerCallback callback,
     void* context)
 {
-    furi_check(worker->mode_index == FNWorkerModeIdle);
+    furi_check(worker->mode_index == FNWorkerModeIdle, TAG" fn_worker_fn_detect_start");
     worker->callback = callback;
     worker->cb_ctx = context;
     worker->fn_info = fn_info;
@@ -149,7 +149,7 @@ void fn_worker_get_life_info_start(
     FNWorkerCallback callback,
     void* context)
 {
-    furi_check(worker->mode_index == FNWorkerModeIdle);
+    furi_check(worker->mode_index == FNWorkerModeIdle, TAG" fn_worker_get_life_info_start");
     worker->callback = callback;
     worker->cb_ctx = context;
     worker->fn_answer_data = fn_life_info;
@@ -161,7 +161,7 @@ void fn_worker_flash_MGM_start(
     FNWorkerCallback callback,
     void* context)
 {
-    furi_check(worker->mode_index == FNWorkerModeIdle);
+    furi_check(worker->mode_index == FNWorkerModeIdle, TAG" fn_worker_flash_MGM_start");
     worker->callback = callback;
     worker->cb_ctx = context;
 
