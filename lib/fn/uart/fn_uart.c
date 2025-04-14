@@ -50,15 +50,15 @@ static void timer_timeout(void* ctx) {
 }
 
 static void console_disable() {
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_session_close(cli);
-    furi_record_close(RECORD_CLI);
+    CliVcp* cli = furi_record_open(RECORD_CLI_VCP);
+    cli_vcp_disable(cli);
+    furi_record_close(RECORD_CLI_VCP);
 }
 
 static void console_enable() {
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_session_open(cli, &cli_vcp);
-    furi_record_close(RECORD_CLI);
+    CliVcp* cli = furi_record_open(RECORD_CLI_VCP);
+    cli_vcp_enable(cli);
+    furi_record_close(RECORD_CLI_VCP);
 }
 
 static void fn_init_uart(uint32_t baudrate, UARTApp* app) {

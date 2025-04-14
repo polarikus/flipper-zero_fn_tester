@@ -5,7 +5,7 @@
 #endif
 #include <furi.h>
 
-#define TAG "FNTest"
+#define TAG        "FNTest"
 #define WORKER_TAG TAG "App"
 
 static bool fn_test_app_custom_event_callback(void* context, uint32_t event) {
@@ -43,7 +43,6 @@ FNApp* fn_test_app_alloc(void) {
     app->fn_info->serial_number[0] = 'N';
 
     app->view_dispatcher = view_dispatcher_alloc();
-    view_dispatcher_enable_queue(app->view_dispatcher);
 
     app->scene_manager = scene_manager_alloc(&fn_test_scene_handlers, app);
 

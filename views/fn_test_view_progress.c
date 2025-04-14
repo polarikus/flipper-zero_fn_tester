@@ -58,6 +58,5 @@ void fn_test_view_progress_free(FNProgressView* app) {
 }
 
 void fn_test_view_progress_set_mode(FNProgressView* app, FNTestProgressViewMode mode) {
-    with_view_model(
-        app->view, FNDetectViewModel * model, { model->mode = mode; }, true);
+    with_view_model(app->view, FNDetectViewModel * model, { model->mode = mode; }, true);
 }

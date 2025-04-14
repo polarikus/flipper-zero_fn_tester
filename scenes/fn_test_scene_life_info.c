@@ -6,7 +6,7 @@
 #include "fn_objects/life_info/fn_life_info.h"
 #include "../views/fn_test_view_progress.h"
 
-#define FN_TEST_NAME "\e#\e!       Life Info        \e!\n"
+#define FN_TEST_NAME      "\e#\e!       Life Info        \e!\n"
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"
 
 static void

@@ -5,7 +5,7 @@
 #include "fn_helpers.h"
 #include "data_types/fn_data_types.h"
 
-#define FN_TEST_NAME "\e#\e!       FN Info        \e!\n"
+#define FN_TEST_NAME      "\e#\e!       FN Info        \e!\n"
 #define FN_TEST_BLANK_INV "\e#\e!                                                      \e!\n"
 
 void fn_test_scene_fn_info_on_enter(void* context) {
