@@ -47,7 +47,7 @@ void minunit_print_progress() {
 void minunit_print_fail(const char* str) {
     printf(_FURI_LOG_CLR_E "%s\r\n" _FURI_LOG_CLR_RESET, str);
 }
-
+/*
 static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
     UNUSED(context);
     minunit_run = 0;
@@ -99,6 +99,7 @@ static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
         }
     }
 }
+ */
 
 void fn_register_tests() {
 #ifdef FURI_DEBUG
@@ -117,6 +118,6 @@ void fn_unregister_tests() {
     furi_record_close(RECORD_CLI);
 #else
     UNUSED(fn_unregister_tests);
-    UNUSED(fn_test_cli);
+    //UNUSED(fn_test_cli);
 #endif
 }
