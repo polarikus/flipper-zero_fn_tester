@@ -6,6 +6,9 @@
   a request, otherwise a fast answer is lost.
 - Disable the expansion module detection while the app holds USART (pins 13/14),
   otherwise the port cannot be acquired and the app aborts.
+- Keep the USB CLI console enabled: it is independent from USART (pins 13/14),
+  so logs stay available via `log` while the app is running. Removed the legacy
+  `cli_vcp_disable()` call and the log-level suppression during transactions.
 
 ## v 0.4
 

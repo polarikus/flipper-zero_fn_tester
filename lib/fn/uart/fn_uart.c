@@ -3,8 +3,6 @@
 //
 #include "fn_uart_i.h"
 #define TAG "FNUartBus"
-#include <cli/cli_vcp.h>
-#include <cli/cli.h>
 #include <expansion/expansion.h>
 
 
@@ -55,18 +53,6 @@ static void timer_timeout(void* ctx) {
     furi_thread_flags_set(app->thread_id, UARTThreadEventRxDone);
 }
 
-static void console_disable() {
-    CliVcp* cli = furi_record_open(RECORD_CLI_VCP);
-    cli_vcp_disable(cli);
-    furi_record_close(RECORD_CLI_VCP);
-}
-
-static void console_enable() {
-    CliVcp* cli = furi_record_open(RECORD_CLI_VCP);
-    cli_vcp_enable(cli);
-    furi_record_close(RECORD_CLI_VCP);
-}
-
 // Служба expansion по умолчанию слушает USART (пины 13/14) для поиска модулей
 // расширения. Если она уже заняла порт (подключён модуль или на линии 13/14
 // есть активность, например перемычка), furi_hal_serial_control_acquire()
@@ -84,13 +70,6 @@ static void fn_expansion_set_enabled(bool enabled) {
 
 static void fn_init_uart(uint32_t baudrate, UARTApp* app) {
     FuriHalSerialId serial_id = FuriHalSerialIdUsart;
-#ifndef FN_TESTS
-    // В обычной сборке консоль VCP не нужна: освобождаем её на время работы.
-    // В тестовом профиле консоль остаётся, чтобы можно было отправить `fn_test`.
-    console_disable();
-#else
-    UNUSED(console_disable);
-#endif
     furi_check(baudrate > 0, TAG" baudrate > 0");
 
     // Освобождаем USART от службы expansion до захвата порта.
@@ -111,7 +90,6 @@ static void fn_deinit_uart(UARTApp* uart_app)
     uart_app->serial_handle = NULL;
 
     fn_expansion_set_enabled(true);
-    console_enable();
 }
 
 static int32_t uart_process(void* p) {
@@ -136,7 +114,6 @@ static int32_t uart_process(void* p) {
 
 
     FuriTimer* timer = furi_timer_alloc(timer_timeout, FuriTimerTypePeriodic, app);
-    FuriLogLevel old_log_level = furi_log_get_level();//Сохраняем текущие настройки логов
     uint32_t events;
     while(1) {
         events = furi_thread_flags_wait(UARTThreadEventAll, FuriFlagWaitAny, FuriWaitForever);
@@ -144,11 +121,9 @@ static int32_t uart_process(void* p) {
         if(events & UARTThreadEventStop) break;
         if(events & UARTThreadEventRxStart)
         {
-            furi_log_set_level(FuriLogLevelNone);//Из-за логов теряются байты, поэтому отключаем
             furi_timer_start(timer, furi_ms_to_ticks(uart_app->timeout));
         }
         if(events & UARTThreadEventRxDone){
-            furi_log_set_level(old_log_level);//Возвращаем логи
             furi_timer_stop(timer);
             data_len = furi_stream_buffer_receive(app->rx_stream, rx_buffer, rx_buffer_size, uart_app->timeout);
             uart_app->state = UARTModeRxDone;
