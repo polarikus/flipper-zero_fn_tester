@@ -3,5 +3,6 @@ dist/*
 .clang-format
 .editorconfig
 .env
+.npm
 .ufbt
 .test_scripts
