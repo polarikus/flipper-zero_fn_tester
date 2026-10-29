@@ -74,12 +74,10 @@ MU_TEST(fn_uart_alloc_test) {
 
 MU_TEST(fn_uart_start_and_stop_thread_test) {
     fn_uart_start_thread(fn_uart);
-    mu_assert(
-        wait_thread_state(fn_uart->thread, FuriThreadStateRunning), "FN UART not started!");
+    mu_assert(wait_thread_state(fn_uart->thread, FuriThreadStateRunning), "FN UART not started!");
     mu_assert_int_eq(FuriHalSerialIdUsart, fn_uart->serial_id);
     fn_uart_stop_thread(fn_uart);
-    mu_assert(
-        wait_thread_state(fn_uart->thread, FuriThreadStateStopped), "FN UART not stopped!");
+    mu_assert(wait_thread_state(fn_uart->thread, FuriThreadStateStopped), "FN UART not stopped!");
 }
 
 MU_TEST(fn_uart_set_rx_callback_test) {
@@ -96,12 +94,13 @@ MU_TEST(fn_uart_trx_test) {
 
     is_rx_cmplt = false;
     rx_len = 0;
+    fn_uart->rx_events = 0;
 
     fn_uart_set_rx_callback(fn_uart, uart_thread_cb_test, NULL);
     fn_uart_start_thread(fn_uart);
     uint8_t tx_test[] = {0x04, 0x01, 0x00, FN_CMDGetFNStatus, 0xFF, 0xCD}; //Тестовый запрос в ФН
 
-    fn_uart_trx(fn_uart, tx_test, COUNT_OF(tx_test), 800);
+    bool trx_started = fn_uart_trx(fn_uart, tx_test, COUNT_OF(tx_test), 800);
     while(fn_uart->state != UARTModeIdle) {
         furi_delay_ms(10); //Ждём пока завершиться приём по UART
     }
@@ -110,7 +109,18 @@ MU_TEST(fn_uart_trx_test) {
     // Без подключённого ФН ответа не будет — это не ошибка кода, а отсутствие
     // оборудования. Помечаем тест как пропущенный, чтобы не «красить» весь прогон.
     if(!is_rx_cmplt || rx_len == 0) {
-        printf("[SKIP] fn_uart_trx_test: no response from FN, check UART wiring (13/14)\r\n");
+        printf(
+            "[SKIP] fn_uart_trx_test: no response from FN "
+            "(trx_started=%d, rx_events=%#lx), check power and UART wiring (13/14)\r\n",
+            (int)trx_started,
+            (unsigned long)fn_uart->rx_events);
+        return;
+    }
+
+    // Перемычка 13-14: прилетел собственный запрос. Это не ФН.
+    if(rx_len == COUNT_OF(tx_test) && memcmp(rx_buff, tx_test, rx_len) == 0) {
+        printf("[SKIP] fn_uart_trx_test: loopback detected (13-14 jumper), "
+               "remove it and connect FN\r\n");
         return;
     }
 

@@ -5,6 +5,7 @@
 #define TAG "FNUartBus"
 #include <cli/cli_vcp.h>
 #include <cli/cli.h>
+#include <expansion/expansion.h>
 
 
 typedef enum {
@@ -19,6 +20,7 @@ typedef struct {
     FuriStreamBuffer* rx_stream;
     FuriThreadId thread_id;
     FuriHalSerialId serial_id;
+    UARTApp* uart_app;
 } UARTProcess;
 
 static void usb_uart_on_irq_rx_dma_cb(
@@ -27,6 +29,10 @@ static void usb_uart_on_irq_rx_dma_cb(
     size_t size,
     void* context) {
     UARTProcess* uart_process = (UARTProcess*)context;
+
+    if(uart_process->uart_app) {
+        uart_process->uart_app->rx_events |= ev;
+    }
 
     if(ev & (FuriHalSerialRxEventData | FuriHalSerialRxEventIdle)) {
         uint8_t data[FURI_HAL_SERIAL_DMA_BUFFER_SIZE] = {0};
@@ -61,6 +67,21 @@ static void console_enable() {
     furi_record_close(RECORD_CLI_VCP);
 }
 
+// Служба expansion по умолчанию слушает USART (пины 13/14) для поиска модулей
+// расширения. Если она уже заняла порт (подключён модуль или на линии 13/14
+// есть активность, например перемычка), furi_hal_serial_control_acquire()
+// вернёт NULL, и приложение упадёт по furi_check. Поэтому на время работы
+// отключаем обнаружение модулей, а на выходе включаем его обратно.
+static void fn_expansion_set_enabled(bool enabled) {
+    Expansion* expansion = furi_record_open(RECORD_EXPANSION);
+    if(enabled) {
+        expansion_enable(expansion);
+    } else {
+        expansion_disable(expansion);
+    }
+    furi_record_close(RECORD_EXPANSION);
+}
+
 static void fn_init_uart(uint32_t baudrate, UARTApp* app) {
     FuriHalSerialId serial_id = FuriHalSerialIdUsart;
 #ifndef FN_TESTS
@@ -71,6 +92,9 @@ static void fn_init_uart(uint32_t baudrate, UARTApp* app) {
     UNUSED(console_disable);
 #endif
     furi_check(baudrate > 0, TAG" baudrate > 0");
+
+    // Освобождаем USART от службы expansion до захвата порта.
+    fn_expansion_set_enabled(false);
 
     furi_check(!app->serial_handle, TAG" !uart_process->serial_handle");
     app->serial_handle = furi_hal_serial_control_acquire(serial_id);
@@ -86,6 +110,7 @@ static void fn_deinit_uart(UARTApp* uart_app)
     furi_hal_serial_control_release(uart_app->serial_handle);
     uart_app->serial_handle = NULL;
 
+    fn_expansion_set_enabled(true);
     console_enable();
 }
 
@@ -97,10 +122,13 @@ static int32_t uart_process(void* p) {
 
     app->thread_id = furi_thread_get_id(furi_thread_get_current());
     app->rx_stream = furi_stream_buffer_alloc(FN_UART_MAX_PACKAGE_LEN, 1);
-
+    app->uart_app = uart_app;
 
     furi_hal_serial_dma_rx_start(uart_app->serial_handle,
                                  usb_uart_on_irq_rx_dma_cb, app, true);
+    // Приёмник готов: только после этого можно отправлять запрос в ФН,
+    // иначе быстрый ответ потеряется (DMA ещё не взведён).
+    uart_app->rx_ready = true;
 
     const uint16_t rx_buffer_size = FN_UART_MAX_PACKAGE_LEN;
     uint8_t* rx_buffer = malloc(rx_buffer_size);
@@ -131,6 +159,7 @@ static int32_t uart_process(void* p) {
         //TODO Ускорить UART.Получаем первые 3 байта, там есть длина. Далее ждём, пока стрим не заполнится на эту длину + CRC. Если заполнился - объеденяем буфер
     }
 
+    uart_app->rx_ready = false;
     furi_hal_serial_dma_rx_stop(uart_app->serial_handle);
     free(rx_buffer);
     furi_timer_free(timer);
@@ -146,6 +175,8 @@ UARTApp* fn_uart_app_alloc() {
     uart_app->timeout = 0;
     uart_app->baudrate = 115200;
     uart_app->serial_id = FuriHalSerialIdUsart;
+    uart_app->rx_ready = false;
+    uart_app->rx_events = 0;
     fn_init_uart(uart_app->baudrate, uart_app);
 
     uart_app->thread = furi_thread_alloc_ex("FN UART thread", 1 * 1024, uart_process, uart_app);
@@ -192,6 +223,18 @@ bool fn_uart_trx(UARTApp* app, uint8_t* tx_buff, size_t tx_buff_size, uint32_t t
         FURI_LOG_D(TAG, "!UARTModeIdle. MODE=%d", app->state);
         return false;
     }
+
+    // Ждём, пока поток UART взведёт DMA на приём. Без этого быстрый ответ ФН
+    // теряется: запрос уходит раньше, чем включается приёмник.
+    uint32_t wait_started = furi_get_tick();
+    while(!app->rx_ready) {
+        if(furi_get_tick() - wait_started > furi_ms_to_ticks(100)) {
+            FURI_LOG_E(TAG, "RX DMA is not ready, abort TRX");
+            return false;
+        }
+        furi_delay_ms(1);
+    }
+
     if(timeout != app->timeout) app->timeout = timeout;
 
     app->state = UARTModeTx;
