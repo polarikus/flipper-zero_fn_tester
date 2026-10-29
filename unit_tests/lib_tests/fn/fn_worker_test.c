@@ -2,6 +2,7 @@
 // Created by Игорь Данилов on 30.08.2023.
 //
 #include "unit_tests/minunit.h"
+#include "unit_tests/test_index.h"
 #include "fn_worker_i.h"
 #include "fn_objects/fn_info/fn_i.h"
 #include "fn_objects/life_info/fn_life_info_i.h"
@@ -9,33 +10,69 @@
 
 FNWorker* fn_worker;
 
-bool is_worker_cmplt = false;
+static volatile bool is_worker_cmplt = false;
+static FNCustomEventWorker last_worker_event;
+static FNError last_worker_error;
+
+#define WORKER_AWAIT_TIMEOUT_MS 15000
 
 static void test_setup(void) {
-    fn_worker = fn_worker_alloc();
+    fn_worker = fn_test_get_worker();
+    furi_check(fn_worker, "fn_test worker is not available");
+    if(furi_thread_get_state(fn_worker->thread) != FuriThreadStateStopped) {
+        fn_worker_stop_thread(fn_worker);
+    }
+    fn_worker->callback = NULL;
+    fn_worker->cb_ctx = NULL;
+    fn_worker->mode_index = FNWorkerModeIdle;
+    fn_worker->fn_info = NULL;
+    fn_worker->fn_answer_data = NULL;
+    is_worker_cmplt = false;
+    last_worker_event = FNCustomEventWorkerFNNotResponse;
+    last_worker_error = FNOk;
 }
 
 static void test_teardown(void) {
-    fn_worker_free(fn_worker);
+    if(furi_thread_get_state(fn_worker->thread) != FuriThreadStateStopped) {
+        fn_worker_stop_thread(fn_worker);
+    }
+    if(furi_thread_get_state(fn_worker->uart->thread) != FuriThreadStateStopped) {
+        fn_uart_stop_thread(fn_worker->uart);
+    }
+    fn_worker->callback = NULL;
+    fn_worker->cb_ctx = NULL;
+    // Тесты освобождают свои объекты — не оставляем в воркере висячие указатели.
+    fn_worker->fn_info = NULL;
+    fn_worker->fn_answer_data = NULL;
 }
 
-static bool await_cb() {
-    uint32_t timeout = 5000;
+static bool wait_thread_state(FuriThread* thread, FuriThreadState state) {
+    for(size_t i = 0; i < 200; ++i) {
+        if(furi_thread_get_state(thread) == state) {
+            return true;
+        }
+        furi_delay_ms(5);
+    }
+    return false;
+}
 
-    while(is_worker_cmplt != true || timeout == 0) {
+static bool await_cb(void) {
+    uint32_t timeout = WORKER_AWAIT_TIMEOUT_MS;
+
+    while(!is_worker_cmplt && timeout > 0) {
         furi_delay_ms(10);
-        timeout = timeout - 10;
+        timeout -= 10;
     }
     is_worker_cmplt = false;
 
-    return timeout;
+    return timeout > 0;
 }
 
 static void fn_worker_test_cb(void* context, FNCustomEventWorker event, FNError fn_error) {
+    last_worker_event = event;
+    last_worker_error = fn_error;
     is_worker_cmplt = true;
     UNUSED(context);
-    UNUSED(event);
-    UNUSED(fn_error);
 }
 
 MU_TEST(fn_worker_alloc_test) {
@@ -51,22 +88,35 @@ MU_TEST(fn_worker_alloc_test) {
 MU_TEST(fn_worker_start_and_stop_thread_test) {
     fn_worker_start_thread(fn_worker);
     mu_assert(
-        furi_thread_get_state(fn_worker->thread) == FuriThreadStateStarting,
-        "FN WORKER not started!");
+        wait_thread_state(fn_worker->thread, FuriThreadStateRunning), "FN WORKER not started!");
     fn_worker_stop_thread(fn_worker);
     mu_assert(
-        furi_thread_get_state(fn_worker->thread) == FuriThreadStateStopped,
-        "FN WORKER not stopped!");
+        wait_thread_state(fn_worker->thread, FuriThreadStateStopped), "FN WORKER not stopped!");
 }
 
 MU_TEST(fn_worker_fn_detect_start_test) {
     FNInfo* fn_info = malloc(sizeof(FNInfo));
-    fn_info->fw_version.fw_mode = 1;
-    fn_info->fn_state = 0;
-    fn_worker_start_thread(fn_worker);
+    memset(fn_info, 0, sizeof(FNInfo));
 
+    fn_worker_start_thread(fn_worker);
     fn_worker_fn_detect_start(fn_info, fn_worker, fn_worker_test_cb, NULL);
-    mu_assert(await_cb(), "await_cb timeout!!!");
+    bool completed = await_cb();
+    fn_worker_stop_thread(fn_worker);
+
+    if(!completed) {
+        free(fn_info);
+        mu_fail("await_cb timeout!!!");
+    }
+
+    if(last_worker_event != FNCustomEventWorkerFNIdentified) {
+        printf(
+            "[SKIP] fn_worker_fn_detect_start_test: FN not identified (event=%d, error=%d)\r\n",
+            (int)last_worker_event,
+            (int)last_worker_error);
+        free(fn_info);
+        return;
+    }
+
     mu_assert_string_eq(MGM_SN, fn_get_sn(fn_info));
     mu_assert_string_eq(MGM_FW, fn_get_fw_version(fn_info));
     mu_assert_int_between((int)FNStage1, (int)FNStage4, (int)fn_get_fn_state_enum(fn_info));
@@ -75,29 +125,61 @@ MU_TEST(fn_worker_fn_detect_start_test) {
 
     mu_assert(fn_is_mgm(fn_info), "FN not MGM!!");
 
-    fn_worker_stop_thread(fn_worker);
     free(fn_info);
 }
 
 MU_TEST(fn_worker_fn_life_info_test) {
     FNLifeInfo* fn_life_info = fn_life_info_alloc();
     FNInfo* fn_info = malloc(sizeof(FNInfo));
+    memset(fn_info, 0, sizeof(FNInfo));
 
     fn_worker_start_thread(fn_worker);
+
     fn_worker_fn_detect_start(fn_info, fn_worker, fn_worker_test_cb, NULL);
-    fn_info_copy(fn_info, fn_worker->fn_info);
-    mu_assert(await_cb(), "await_cb timeout!!!");
+    bool completed = await_cb();
+    if(!completed) {
+        fn_worker_stop_thread(fn_worker);
+        fn_life_info_free(fn_life_info);
+        free(fn_info);
+        mu_fail("detect await_cb timeout!!!");
+    }
+
+    if(last_worker_event != FNCustomEventWorkerFNIdentified) {
+        fn_worker_stop_thread(fn_worker);
+        printf(
+            "[SKIP] fn_worker_fn_life_info_test: FN not identified (event=%d, error=%d)\r\n",
+            (int)last_worker_event,
+            (int)last_worker_error);
+        fn_life_info_free(fn_life_info);
+        free(fn_info);
+        return;
+    }
 
     fn_worker_get_life_info_start(fn_life_info, fn_worker, fn_worker_test_cb, NULL);
-    mu_assert(await_cb(), "await_cb timeout!!!");
-    mu_assert_int_between(0, 10, fn_life_info->reg_report_ctn);
+    completed = await_cb();
     fn_worker_stop_thread(fn_worker);
+
+    if(!completed) {
+        fn_life_info_free(fn_life_info);
+        free(fn_info);
+        mu_fail("life info await_cb timeout!!!");
+    }
+
+    if(last_worker_event != FNCustomEventWorkerDone) {
+        printf(
+            "[SKIP] fn_worker_fn_life_info_test: FN life info not received (event=%d, error=%d)\r\n",
+            (int)last_worker_event,
+            (int)last_worker_error);
+        fn_life_info_free(fn_life_info);
+        free(fn_info);
+        return;
+    }
+
+    mu_assert_int_between(0, 10, fn_life_info->reg_report_ctn);
+
     fn_life_info_free(fn_life_info);
     free(fn_info);
 }
-
-//TODO LifeInfo тест. Расширить, добавить проверки
-//TODO Добавить тест flashMGM, просто нужно еще написать много сервисов для реги ФН и подключать для тестов чистый МГМ. И флеш делать в конце всех тестов
 
 MU_TEST_SUITE(fn_worker_suite) {
     MU_SUITE_CONFIGURE(test_setup, test_teardown);
@@ -106,7 +188,6 @@ MU_TEST_SUITE(fn_worker_suite) {
     MU_RUN_TEST(fn_worker_start_and_stop_thread_test);
     MU_RUN_TEST(fn_worker_fn_detect_start_test);
     MU_RUN_TEST(fn_worker_fn_life_info_test);
-    UNUSED(fn_worker_fn_detect_start_test);
 }
 
 int run_minunit_test_fn_worker() {

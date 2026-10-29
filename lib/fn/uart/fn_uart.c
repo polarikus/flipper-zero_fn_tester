@@ -62,12 +62,13 @@ static void console_enable() {
 }
 
 static void fn_init_uart(uint32_t baudrate, UARTApp* app) {
-#ifdef FURI_DEBUG
-    FuriHalSerialId serial_id = FuriHalSerialIdLpuart;
-    UNUSED(console_disable);
-#else
     FuriHalSerialId serial_id = FuriHalSerialIdUsart;
+#ifndef FN_TESTS
+    // В обычной сборке консоль VCP не нужна: освобождаем её на время работы.
+    // В тестовом профиле консоль остаётся, чтобы можно было отправить `fn_test`.
     console_disable();
+#else
+    UNUSED(console_disable);
 #endif
     furi_check(baudrate > 0, TAG" baudrate > 0");
 
@@ -144,11 +145,7 @@ UARTApp* fn_uart_app_alloc() {
     UARTApp* uart_app = malloc(sizeof(UARTApp));
     uart_app->timeout = 0;
     uart_app->baudrate = 115200;
-#ifndef FURI_DEBUG
     uart_app->serial_id = FuriHalSerialIdUsart;
-#else
-    uart_app->serial_id = FuriHalSerialIdLpuart;
-#endif
     fn_init_uart(uart_app->baudrate, uart_app);
 
     uart_app->thread = furi_thread_alloc_ex("FN UART thread", 1 * 1024, uart_process, uart_app);

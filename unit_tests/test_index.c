@@ -5,6 +5,7 @@
 #include <furi.h>
 #include "minunit_vars.h"
 #include <cli/cli.h>
+#include <notification/notification.h>
 #include <notification/notification_messages.h>
 //#include <toolbox/args.h>
 
@@ -32,6 +33,12 @@ const UnitTest unit_tests[] = {
 
 };
 
+static FNWorker* test_worker = NULL;
+
+FNWorker* fn_test_get_worker(void) {
+    return test_worker;
+}
+
 void minunit_print_progress() {
     static const char progress[] = {'\\', '|', '/', '-'};
     static uint8_t progress_counter = 0;
@@ -47,13 +54,16 @@ void minunit_print_progress() {
 void minunit_print_fail(const char* str) {
     printf(_FURI_LOG_CLR_E "%s\r\n" _FURI_LOG_CLR_RESET, str);
 }
-/*
-static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
+
+static void fn_test_cli(PipeSide* pipe, FuriString* args, void* context) {
     UNUSED(context);
+
     minunit_run = 0;
     minunit_assert = 0;
     minunit_fail = 0;
     minunit_status = 0;
+    minunit_real_timer = 0;
+    minunit_proc_timer = 0;
 
     NotificationApp* notification = furi_record_open(RECORD_NOTIFICATION);
     notification_message_block(notification, &sequence_set_only_blue_255);
@@ -62,7 +72,7 @@ static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
     uint32_t cycle_counter = furi_get_tick();
 
     for(size_t i = 0; i < COUNT_OF(unit_tests); i++) {
-        if(cli_cmd_interrupt_received(cli)) {
+        if(cli_is_pipe_broken_or_is_etx_next_char(pipe)) {
             break;
         }
 
@@ -78,16 +88,16 @@ static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
     }
 
     if(minunit_run != 0) {
-        printf("\r\nFailed tests: %u\r\n", minunit_fail);
+        printf("\r\nFailed tests: %u\r\n", (unsigned)minunit_fail);
 
         // Time report
         cycle_counter = (furi_get_tick() - cycle_counter);
-        printf("Consumed: %lu ms\r\n", cycle_counter);
+        printf("Consumed: %lu ms\r\n", (unsigned long)cycle_counter);
 
         // Wait for tested services and apps to deallocate memory
         furi_delay_ms(200);
         uint32_t heap_after = memmgr_get_free_heap();
-        printf("Leaked: %ld\r\n", heap_before - heap_after);
+        printf("Leaked: %ld\r\n", (long)((int32_t)(heap_before - heap_after)));
 
         // Final Report
         if(minunit_fail == 0) {
@@ -97,27 +107,35 @@ static void fn_test_cli(Cli* cli, FuriString* args, void* context) {
             notification_message(notification, &sequence_error);
             printf("Status: FAILED\r\n");
         }
+    } else {
+        printf("No tests were run\r\n");
     }
-}
- */
 
-void fn_register_tests() {
-#ifdef FURI_DEBUG
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_add_command(cli, "fn_test", CliCommandFlagParallelSafe, fn_test_cli, NULL);
+    furi_record_close(RECORD_NOTIFICATION);
+}
+
+void fn_register_tests(FNWorker* worker) {
+#ifdef FN_TESTS
+    test_worker = worker;
+
+    CliRegistry* cli = furi_record_open(RECORD_CLI);
+    // Тесты работают в фоновом потоке, стек по умолчанию мал.
+    cli_registry_add_command_ex(
+        cli, "fn_test", CliCommandFlagParallelSafe, fn_test_cli, NULL, 4 * 1024);
     furi_record_close(RECORD_CLI);
 #else
-    UNUSED(fn_register_tests);
+    UNUSED(worker);
+    UNUSED(fn_test_cli);
 #endif
 }
 
-void fn_unregister_tests() {
-#ifdef FURI_DEBUG
-    Cli* cli = furi_record_open(RECORD_CLI);
-    cli_delete_command(cli, "fn_test");
+void fn_unregister_tests(void) {
+#ifdef FN_TESTS
+    CliRegistry* cli = furi_record_open(RECORD_CLI);
+    cli_registry_delete_command(cli, "fn_test");
     furi_record_close(RECORD_CLI);
+    test_worker = NULL;
 #else
     UNUSED(fn_unregister_tests);
-    //UNUSED(fn_test_cli);
 #endif
 }
