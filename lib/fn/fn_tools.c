@@ -163,7 +163,10 @@ static bool fn_trx(FNWorker* worker, FNAnswer* answer, FN_CMD cmd, const uint8_t
                 free(tx);
                 return false;
             }
-            answer->error = rx_buff[FN_UART_ANSWER_CODE_SHIFT];
+            // По протоколу ФН в младших 7 битах байта — код ответа, старший бит
+            // (0x80) — признак наличия предупреждений. Без маски успешный ответ
+            // с предупреждениями (например, у МГМ) принимался за ошибку.
+            answer->error = rx_buff[FN_UART_ANSWER_CODE_SHIFT] & 0x7F;
             answer->data_len = rx_data_len - 1;
 
             uint8_t rx_crc_b[FN_UART_CRC_SIZE];
