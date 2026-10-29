@@ -1,0 +1,15 @@
+App(
+    appid="my_app",
+    name="My App",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="my_app_app",
+    requires=["gui"],
+    stack_size=2 * 1024,
+    fap_version="1.0",
+    fap_icon="my_app.png",
+    fap_category="Tools",
+    fap_description="Template application with scenes",
+    fap_author="Your Name",
+    fap_weburl="https://example.com",
+    fap_icon_assets="images",
+)
