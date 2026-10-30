@@ -3,6 +3,8 @@
 #include "core/fn_frame.h"
 #include "core/fn_wire.h"
 
+#include <string.h>
+
 #define TAG "FNUart"
 
 static FuriHalSerialId fn_uart_serial_id(void) {
@@ -120,6 +122,17 @@ FnUartTrxStatus fn_uart_trx(
     if(uart->busy) return FnUartTrxError;
     if(!uart->rx_ready || !uart->serial || !uart->rx_stream) return FnUartTrxError;
 
+#ifdef FN_TESTS
+    if(uart->inject_len != 0) {
+        const size_t inject_len = uart->inject_len;
+        const size_t copy = (inject_len > rx_cap) ? rx_cap : inject_len;
+        memcpy(rx, uart->inject_buf, copy);
+        *rx_len = copy;
+        uart->inject_len = 0;
+        return FnUartTrxOk;
+    }
+#endif
+
     uart->busy = true;
     uart->cancel_requested = false;
     uart->overflow = false;
@@ -178,3 +191,15 @@ void fn_uart_cancel(FnUart* uart) {
     /* Ожидание идёт короткими слайсами: флаг проверяется не позже SLICE_MS. */
     uart->cancel_requested = true;
 }
+
+#ifdef FN_TESTS
+void fn_uart_test_inject(FnUart* uart, const uint8_t* data, size_t len) {
+    if(!uart) return;
+    if(!data || len == 0 || len > sizeof(uart->inject_buf)) {
+        uart->inject_len = 0;
+        return;
+    }
+    memcpy(uart->inject_buf, data, len);
+    uart->inject_len = len;
+}
+#endif

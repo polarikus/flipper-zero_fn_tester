@@ -19,6 +19,30 @@ void fn_test_app_handle_worker_result(void* context, const FnOpResult* result) {
     view_dispatcher_send_custom_event(app->view_dispatcher, FNAppCustomEventWorkerResult);
 }
 
+bool fn_test_app_start_op(FNApp* app, FnOpKind kind) {
+    furi_assert(app);
+
+    app->pending_op = kind;
+    memset(&app->op_result, 0, sizeof(app->op_result));
+
+    /* Новый старт сразу делает недействительным id предыдущей операции:
+     * если запуск не удался (воркер ещё завершает отменённую операцию),
+     * её результат тоже не должен приниматься за текущий (T071, FR-030). */
+    app->op_id++;
+    app->op_result.id = app->op_id;
+    app->op_result.kind = kind;
+
+    if(!fn_worker_start(app->worker, kind, &app->task, fn_test_app_handle_worker_result, app)) {
+        return false;
+    }
+
+    /* Авторитетный id — у воркера: по нему сцена отбрасывает «поздние»
+     * результаты отменённых операций. */
+    app->op_id = fn_worker_get_op_id(app->worker);
+    app->op_result.id = app->op_id;
+    return true;
+}
+
 static void fn_test_app_menu_callback(void* context, uint8_t index) {
     furi_assert(context);
     FNApp* app = context;

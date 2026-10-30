@@ -71,3 +71,13 @@ struct FNApp {
  * Сцены передают его в fn_worker_start() (contracts/worker-events.md §1).
  */
 void fn_test_app_handle_worker_result(void* context, const FnOpResult* result);
+
+/**
+ * Запустить операцию и запомнить её id (T071).
+ *
+ * Инкремент `op_id` выполняется при каждом старте: результат отменённой
+ * операции приходит с прежним id и отбрасывается сценой ожидания.
+ *
+ * @return false, если воркер занят (результат «занято» доставляет сцена)
+ */
+bool fn_test_app_start_op(FNApp* app, FnOpKind kind);

@@ -53,10 +53,9 @@ void fn_scene_wait_on_enter(void* context) {
 
     view_dispatcher_switch_to_view(app->view_dispatcher, FNAppViewWait);
 
-    memset(&app->op_result, 0, sizeof(app->op_result));
     app->result_reason = FnResultReasonOperation;
 
-    if(!fn_worker_start(app->worker, kind, &app->task, fn_test_app_handle_worker_result, app)) {
+    if(!fn_test_app_start_op(app, kind)) {
         FURI_LOG_E(TAG, "не удалось запустить операцию %d: воркер занят", (int)kind);
         /* Результат «занято» доставляется тем же событием, что и обычный,
          * чтобы сцена показала понятный итог, а не зависла на ожидании. */
@@ -66,9 +65,6 @@ void fn_scene_wait_on_enter(void* context) {
         view_dispatcher_send_custom_event(app->view_dispatcher, FNAppCustomEventWorkerResult);
         return;
     }
-
-    /* Идентификатор берём у воркера: результат с другим id — «поздний». */
-    app->op_id = fn_worker_get_op_id(app->worker);
 }
 
 /** Preflight «МГМ/боевой» после Detect: подтверждение только для МГМ (FR-024). */
@@ -126,9 +122,22 @@ bool fn_scene_wait_on_event(void* context, SceneManagerEvent event) {
         }
         fn_scene_wait_handle_result(app);
         consumed = true;
-    } else if(event.type == SceneManagerEventTypeBack && !fn_op_is_cancellable(app->pending_op)) {
-        /* FR-015: ожидание очистки МГМ не прерывается — ждём ответ или 30 с. */
+    } else if(event.type == SceneManagerEventTypeBack) {
+        /* Back всегда потребляется сценой ожидания (FR-015, FR-018). */
         consumed = true;
+        if(fn_op_is_cancellable(app->pending_op)) {
+            /* Back во время чтения: отмена и немедленный возврат в меню,
+             * не дожидаясь ответа ФН (SC-003, ≤ 1 с). */
+            FURI_LOG_I(TAG, "ожидание отменено пользователем");
+            fn_worker_cancel(app->worker);
+            /* Отменённая операция может завершиться уже после ухода со сцены:
+             * её id становится «чужим» и результат отбрасывается. */
+            app->op_id++;
+            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, FNAppSceneStart);
+        } else {
+            /* Очистка МГМ не прерывается — ждём ответ или 30 с (FR-015, FR-023). */
+            FURI_LOG_I(TAG, "Back проигнорирован: операция неотменяемая");
+        }
     }
 
     return consumed;
@@ -138,6 +147,7 @@ void fn_scene_wait_on_exit(void* context) {
     furi_assert(context);
     FNApp* app = context;
 
+    /* Анимация ожидания останавливается exit-callback-ом FnWaitView. */
     /* Очистку МГМ отменять запрещено (contracts/worker-events.md §3). */
     if(fn_op_is_cancellable(app->pending_op) && fn_worker_is_busy(app->worker)) {
         fn_worker_cancel(app->worker);

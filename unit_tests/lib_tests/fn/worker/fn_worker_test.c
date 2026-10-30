@@ -7,6 +7,7 @@
 #include "unit_tests/test_index.h"
 
 #include "lib/fn/fn_worker_i.h"
+#include "lib/fn/transport/fn_uart_i.h"
 
 #include <furi.h>
 #include <string.h>
@@ -234,6 +235,130 @@ MU_TEST(flash_cancel_ignored_test) {
     }
 }
 
+/**
+ * 10 циклов «чтение → отмена», затем 11-я операция (T070, SC-005).
+ *
+ * Проверяется, что отмена каждый раз завершает операцию не дольше 1 с,
+ * воркер и транспорт остаются работоспособными, а память не «течёт»
+ * между циклами.
+ */
+MU_TEST(cancel_cycles_test) {
+    FNWorker* worker = fn_test_get_worker();
+    if(!worker) {
+        printf("[SKIP] cancel_cycles_test: воркер приложения не запущен\r\n");
+        return;
+    }
+    if(fn_worker_is_busy(worker)) {
+        printf("[SKIP] cancel_cycles_test: воркер занят операцией приложения\r\n");
+        return;
+    }
+
+    FnLifeInfo* life = fn_life_info_alloc();
+    FnInfo* info = fn_info_alloc();
+    mu_assert(life != NULL, "нет памяти под FnLifeInfo");
+    mu_assert(info != NULL, "нет памяти под FnInfo");
+
+    FnTask life_task = {.info = NULL, .life = life};
+    FnTask info_task = {.info = info, .life = NULL};
+
+    const size_t heap_before = memmgr_get_free_heap();
+
+    for(uint32_t i = 0; i < 10; ++i) {
+        test_callback_count = 0;
+        mu_assert(
+            fn_worker_start(worker, FnOpReadLife, &life_task, test_callback, NULL),
+            "старт ReadLife в цикле отмены");
+        furi_delay_ms(50);
+        fn_worker_cancel(worker);
+        /* SC-003: отмена завершается не дольше 1 с на цикл. */
+        mu_assert(test_wait(1000), "отменённая операция не завершилась за 1 с");
+        mu_assert_int_eq(1, test_callback_count);
+        mu_assert(!fn_worker_is_busy(worker), "после отмены воркер свободен");
+    }
+
+    mu_assert(!fn_uart_is_busy(worker->uart), "после 10 отмен транспорт свободен");
+
+    /* 11-я операция после серии отмен обязана выполняться (SC-005). */
+    test_callback_count = 0;
+    mu_assert(
+        fn_worker_start(worker, FnOpReadInfo, &info_task, test_callback, NULL),
+        "11-я операция после 10 отмен не стартовала");
+    mu_assert(test_wait(6000), "11-я операция не завершилась за 6 с");
+    mu_assert_int_eq(1, test_callback_count);
+    mu_assert(test_result_status != FnOpStatusCancelled, "11-я операция не должна быть отменена");
+    mu_assert(!fn_worker_is_busy(worker), "после 11-й операции воркер свободен");
+
+    if(test_result_status != FnOpStatusOk) {
+        printf(
+            "[SKIP] cancel_cycles_test: ФН не отвечает (статус %d), нужен реальный ФН\r\n",
+            (int)test_result_status);
+    }
+
+    /* Утечки нет: допустим только небольшой дрейф аллокатора. */
+    const size_t heap_after = memmgr_get_free_heap();
+    mu_assert(
+        heap_after + 1024 >= heap_before,
+        "память уменьшилась больше чем на 1 КБ за 10 циклов отмены");
+
+    fn_info_free(info);
+    fn_life_info_free(life);
+}
+
+/**
+ * Битый кадр ответа (T070, FR-029): операция завершается `BadFrame`,
+ * транспорт возвращается в Idle, следующая операция выполняется.
+ *
+ * Ответ подменяется через тестовый хук `fn_uart_test_inject`, поэтому тест
+ * не зависит от наличия ФН и не искажает реальный обмен.
+ */
+MU_TEST(bad_frame_recovery_test) {
+    FNWorker* worker = fn_test_get_worker();
+    if(!worker) {
+        printf("[SKIP] bad_frame_recovery_test: воркер приложения не запущен\r\n");
+        return;
+    }
+    if(fn_worker_is_busy(worker)) {
+        printf("[SKIP] bad_frame_recovery_test: воркер занят операцией приложения\r\n");
+        return;
+    }
+
+    FnInfo* info = fn_info_alloc();
+    mu_assert(info != NULL, "нет памяти под FnInfo");
+    FnTask task = {.info = info, .life = NULL};
+
+    /* Кадр 30h с неверной CRC: LEN=1, ответ 0x30, CRC 0x0000 (ожидается 0xCDFF). */
+    const uint8_t bad_frame[6] = {0x04, 0x01, 0x00, 0x30, 0x00, 0x00};
+    fn_uart_test_inject(worker->uart, bad_frame, sizeof(bad_frame));
+
+    test_callback_count = 0;
+    mu_assert(fn_worker_start(worker, FnOpDetect, &task, test_callback, NULL), "старт Detect");
+    mu_assert(test_wait(4000), "Detect с битым кадром не завершился за 4 с");
+    mu_assert_int_eq(1, test_callback_count);
+    mu_assert_int_eq(FnOpStatusBadFrame, test_result_status);
+    mu_assert(!fn_uart_is_busy(worker->uart), "после битого кадра транспорт в Idle");
+    mu_assert(!fn_worker_is_busy(worker), "после битого кадра воркер свободен");
+
+    /* Следующая операция не должна пострадать от предыдущей ошибки. */
+    test_callback_count = 0;
+    mu_assert(
+        fn_worker_start(worker, FnOpDetect, &task, test_callback, NULL),
+        "операция после битого кадра не стартовала");
+    mu_assert(test_wait(6000), "операция после битого кадра не завершилась за 6 с");
+    mu_assert_int_eq(1, test_callback_count);
+    mu_assert(
+        test_result_status != FnOpStatusBadFrame,
+        "после битого кадра следующая операция не должна быть BadFrame");
+    mu_assert(!fn_worker_is_busy(worker), "после восстановления воркер свободен");
+
+    if(test_result_status != FnOpStatusOk) {
+        printf(
+            "[SKIP] bad_frame_recovery_test: ФН не отвечает (статус %d)\r\n",
+            (int)test_result_status);
+    }
+
+    fn_info_free(info);
+}
+
 MU_TEST_SUITE(fn_worker_test_suite) {
     MU_SUITE_CONFIGURE(&test_setup, &test_teardown);
 
@@ -243,6 +368,8 @@ MU_TEST_SUITE(fn_worker_test_suite) {
     MU_RUN_TEST(repeat_ops_test);
     MU_RUN_TEST(flash_not_mgm_test);
     MU_RUN_TEST(flash_cancel_ignored_test);
+    MU_RUN_TEST(cancel_cycles_test);
+    MU_RUN_TEST(bad_frame_recovery_test);
 }
 
 int run_minunit_test_fn_worker(void) {
