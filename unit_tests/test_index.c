@@ -11,9 +11,13 @@
 
 #define TAG "UnitTests"
 
-int run_minunit_test_fn_info();
-int run_minunit_test_fn_life_info();
-int run_minunit_test_fn_helpers();
+int run_minunit_test_fn_wire();
+int run_minunit_test_fn_frame();
+int run_minunit_test_fn_types();
+int run_minunit_test_fn_error();
+int run_minunit_test_fn_status();
+int run_minunit_test_fn_ident();
+int run_minunit_test_fn_life();
 int run_minunit_test_fn_uart();
 int run_minunit_test_fn_worker();
 
@@ -25,12 +29,15 @@ typedef struct {
 } UnitTest;
 
 const UnitTest unit_tests[] = {
-    {.name = "fn_info", .entry = run_minunit_test_fn_info},
-    {.name = "fn_life_info", .entry = run_minunit_test_fn_life_info},
-    {.name = "fn_helpers", .entry = run_minunit_test_fn_helpers},
+    {.name = "fn_wire", .entry = run_minunit_test_fn_wire},
+    {.name = "fn_frame", .entry = run_minunit_test_fn_frame},
+    {.name = "fn_types", .entry = run_minunit_test_fn_types},
+    {.name = "fn_error", .entry = run_minunit_test_fn_error},
+    {.name = "fn_status", .entry = run_minunit_test_fn_status},
+    {.name = "fn_ident", .entry = run_minunit_test_fn_ident},
+    {.name = "fn_life", .entry = run_minunit_test_fn_life},
     {.name = "fn_uart", .entry = run_minunit_test_fn_uart},
-    {.name = "fn_worker", .entry = run_minunit_test_fn_worker}
-
+    {.name = "fn_worker", .entry = run_minunit_test_fn_worker},
 };
 
 static FNWorker* test_worker = NULL;

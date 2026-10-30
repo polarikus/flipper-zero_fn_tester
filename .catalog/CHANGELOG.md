@@ -1,3 +1,16 @@
+## v 0.6
+
+- Full Russian UI with a built-in Cyrillic font: main menu, waiting screen with
+  the FN connection animation, scrollable info screens, MGM erase confirmation
+  and result screens.
+- Every FN response code from Protocol v1.2.05 has a Russian title and hint;
+  unknown codes are shown as «Неизвестный код ответа ФН: 0xNN».
+- Reading can be cancelled with Back (≤ 1 s); a late answer is discarded by
+  operation id, the next operation works without restarting the app.
+- MGM erase is protected twice: «МГМ/боевой» preflight by `33h` data and an
+  explicit confirmation; the command is sent exactly once and cannot be
+  cancelled mid-flight.
+
 ## v 0.5
 
 - Fix reading the FN answer: the answer code is masked with `0x7F`, the high bit

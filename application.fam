@@ -10,6 +10,14 @@ App(
     apptype=FlipperAppType.EXTERNAL,
     entry_point="fn_test_app",
     cdefines=["APP_FN_TEST"] + (["FN_TESTS"] if _ENABLE_TESTS else []),
+    # Список исходников задан явно: tests/host — host-тесты для ПК,
+    # их нельзя компилировать под ARM.
+    sources=[
+        "fn_test_app.c",
+        "ui/*.c",
+        "ui/views/*.c",
+        "ui/scenes/*.c",
+    ] + (["unit_tests/*.c", "unit_tests/*/*.c", "unit_tests/*/*/*.c", "unit_tests/*/*/*/*.c"] if _ENABLE_TESTS else []),
     requires=[
         "gui",
         "expansion"
@@ -20,13 +28,14 @@ App(
     fap_description="Tester for Fiscal Memory",
     fap_author="Igor Danilov",
     fap_weburl="https://github.com/polarikus/flipper-zero_fn_tester",
-    fap_version=(0, 5),
+    fap_version=(0, 6),
     order=30,
     fap_category="GPIO",
     fap_icon_assets="icons",
     fap_private_libs=[
             Lib(
-                name="fn"
+                name="fn",
+                fap_include_paths=[".", "core", "proto", "transport"],
             )
     ]
 )
