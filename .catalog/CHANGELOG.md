@@ -3,13 +3,6 @@
 - Full Russian UI with a built-in Cyrillic font: main menu, waiting screen with
   the FN connection animation, scrollable info screens, MGM erase confirmation
   and result screens.
-- Complete rewrite of `lib/fn`: clean core (`core/` — frames, CRC, byte order,
-  response codes), parsers with `has_*` validity flags (`proto/`), serial
-  transport (`transport/`) and a single-operation worker with deadlines
-  (10 s read, 30 s MGM erase).
-- Fixed the swapped `*_LE`/`*_BE` helpers and the byte swap inside
-  `calc_crc16()`; byte order is now expressed by function names only
-  (`fn_wire_u16le_*`, `fn_wire_crc16_ccitt`), see `docs/byte-order.md`.
 - Every FN response code from Protocol v1.2.05 has a Russian title and hint;
   unknown codes are shown as «Неизвестный код ответа ФН: 0xNN».
 - Reading can be cancelled with Back (≤ 1 s); a late answer is discarded by
@@ -17,9 +10,6 @@
 - MGM erase is protected twice: «МГМ/боевой» preflight by `33h` data and an
   explicit confirmation; the command is sent exactly once and cannot be
   cancelled mid-flight.
-- New tests: host tests for the pure core (`make -C tests/host`) and on-device
-  minunit sets for core, parsers, transport and worker.
-- `requires` no longer needs `dialogs`; removed dead debug screens.
 
 ## v 0.5
 
