@@ -7,3 +7,4 @@ dist/*
 .ufbt
 .test_scripts
 tests/host/build/
+__pycache__/

@@ -1,13 +1,79 @@
 #include "../../fn_test_app_i.h"
 #include "fn_scene.h"
 
+/** Режим экрана ожидания по типу операции. */
+static FnWaitMode fn_scene_wait_mode(FnOpKind kind) {
+    switch(kind) {
+    case FnOpFlashMgm:
+        return FnWaitModeFlash;
+    case FnOpReadInfo:
+    case FnOpReadLife:
+        return FnWaitModeRead;
+    case FnOpDetect:
+    default:
+        return FnWaitModeDetect;
+    }
+}
+
+/** Тексты ожидания: заголовок и подсказка подзаголовка. */
+static void fn_scene_wait_texts(FnWaitMode mode, const char** title, const char** subtitle) {
+    switch(mode) {
+    case FnWaitModeFlash:
+        *title = FN_STR_WAIT_FLASH;
+        *subtitle = FN_STR_WAIT_FLASH_HINT;
+        break;
+    case FnWaitModeRead:
+        *title = FN_STR_WAIT_READ;
+        *subtitle = FN_STR_WAIT_READ_HINT;
+        break;
+    case FnWaitModeDetect:
+    default:
+        *title = FN_STR_WAIT_DETECT;
+        *subtitle = FN_STR_WAIT_DETECT_HINT;
+        break;
+    }
+}
+
 void fn_scene_wait_on_enter(void* context) {
     furi_assert(context);
     FNApp* app = context;
 
-    fn_view_wait_set(
-        app->view_wait, FnWaitModeDetect, FN_STR_WAIT_DETECT, FN_STR_WAIT_DETECT_HINT, true);
+    const FnOpKind kind = app->pending_op;
+    const FnWaitMode mode = fn_scene_wait_mode(kind);
+    const bool cancelable = (kind != FnOpFlashMgm);
+
+    const char* title = NULL;
+    const char* subtitle = NULL;
+    fn_scene_wait_texts(mode, &title, &subtitle);
+    fn_view_wait_set(app->view_wait, mode, title, subtitle, cancelable);
+
     view_dispatcher_switch_to_view(app->view_dispatcher, FNAppViewWait);
+
+    memset(&app->op_result, 0, sizeof(app->op_result));
+
+    if(!fn_worker_start(app->worker, kind, &app->task, fn_test_app_handle_worker_result, app)) {
+        FURI_LOG_E(TAG, "не удалось запустить операцию %d: воркер занят", (int)kind);
+        /* Результат «занято» доставляется тем же событием, что и обычный,
+         * чтобы сцена показала понятный итог, а не зависла на ожидании. */
+        app->op_result.id = app->op_id;
+        app->op_result.kind = kind;
+        app->op_result.status = FnOpStatusBusy;
+        view_dispatcher_send_custom_event(app->view_dispatcher, FNAppCustomEventWorkerResult);
+        return;
+    }
+
+    /* Идентификатор берём у воркера: результат с другим id — «поздний». */
+    app->op_id = fn_worker_get_op_id(app->worker);
+}
+
+/** Переход по результату операции US1: успех — данные, иначе — результат. */
+static void fn_scene_wait_handle_result(FNApp* app) {
+    if(app->op_result.status == FnOpStatusOk && app->op_result.kind == FnOpReadInfo) {
+        scene_manager_next_scene(app->scene_manager, FNAppSceneInfo);
+        return;
+    }
+
+    scene_manager_next_scene(app->scene_manager, FNAppSceneResult);
 }
 
 bool fn_scene_wait_on_event(void* context, SceneManagerEvent event) {
@@ -20,7 +86,7 @@ bool fn_scene_wait_on_event(void* context, SceneManagerEvent event) {
             FURI_LOG_W(TAG, "поздний результат операции %u", (unsigned)app->op_result.id);
             return true;
         }
-        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, FNAppSceneStart);
+        fn_scene_wait_handle_result(app);
         consumed = true;
     }
     return consumed;

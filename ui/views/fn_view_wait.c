@@ -37,18 +37,12 @@ static void fn_view_wait_draw_callback(Canvas* canvas, void* context) {
 
     fn_draw_primary(canvas);
     const uint16_t title_h =
-        fn_draw_wrapped(canvas, FN_WAIT_TEXT_X, 6, model->title, FN_WAIT_TEXT_W, FN_UI_LINE_H, 3);
+        fn_draw_wrapped(canvas, FN_WAIT_TEXT_X, 2, model->title, FN_WAIT_TEXT_W, FN_UI_LINE_H, 3);
 
     if(model->subtitle[0] != '\0') {
         fn_draw_small(canvas);
         fn_draw_wrapped(
-            canvas,
-            FN_WAIT_TEXT_X,
-            6 + title_h + 2,
-            model->subtitle,
-            FN_WAIT_TEXT_W,
-            FN_UI_SMALL_H,
-            4);
+            canvas, FN_WAIT_TEXT_X, 2 + title_h, model->subtitle, FN_WAIT_TEXT_W, FN_UI_SMALL_H, 4);
     }
 }
 

@@ -27,6 +27,11 @@ extern "C" {
 #define FN_STR_ABOUT_TITLE   "О приложении"
 #define FN_STR_CONFIRM_TITLE "Очистка МГМ"
 
+/* Заголовки секций экрана «Информация об ФН» (contracts/ui.md §8.1). */
+#define FN_STR_SECTION_FN_STATUS "ФН (30h)"
+#define FN_STR_SECTION_FFD       "ФФД (3Ah)"
+#define FN_STR_SECTION_FW        "ПО ФН (33h)"
+
 /* Подписи полей. */
 #define FN_STR_SN             "Серийный номер"
 #define FN_STR_STAGE          "Этап"
@@ -34,12 +39,16 @@ extern "C" {
 #define FN_STR_SESSION_OPEN   "открыта"
 #define FN_STR_SESSION_CLOSED "закрыта"
 #define FN_STR_DOC            "Документ для ОФД"
+#define FN_STR_DOC_HEADER     "Документ для ОФД:"
 #define FN_STR_FFD            "ФФД"
 #define FN_STR_FW             "Версия ПО"
 #define FN_STR_MGM            "МГМ"
 #define FN_STR_SHIFT          "Номер смены"
 #define FN_STR_RECEIPT        "Номер чека"
 #define FN_STR_LAST_DOC       "Последний документ"
+#define FN_STR_LAST_DOC_DATE  "Дата документа"
+#define FN_STR_FFD_CURRENT    "Текущая"
+#define FN_STR_FFD_MAX        "Максимальная"
 #define FN_STR_WARNINGS       "Предупреждения"
 #define FN_STR_OTHER_WARNINGS "Прочие предупреждения: 0x%02X"
 
@@ -52,6 +61,9 @@ extern "C" {
 #define FN_STR_DOC_NO_DATA       "данные не получены"
 #define FN_STR_MGM_YES           "опытный образец"
 #define FN_STR_MGM_NO            "боевой"
+#define FN_STR_INDENT_FMT        "  %s"
+#define FN_STR_DOC_UNKNOWN_FMT   "  Неизвестный документ (0x%02X)"
+#define FN_STR_DATE_FMT          "%02u.%02u.%02u %02u:%02u"
 
 /* Ожидание. */
 #define FN_STR_WAIT_DETECT      "Поиск ФН"

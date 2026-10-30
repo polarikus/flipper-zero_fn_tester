@@ -31,6 +31,12 @@ LIB_SRC := \
 	$(wildcard $(ROOT)/lib/fn/proto/*.c) \
 	$(wildcard $(ROOT)/ui/fn_format.c)
 
+# Заголовки — тоже зависимости: правка строк или констант должна пересобирать тесты.
+LIB_HEADERS := \
+	$(wildcard $(ROOT)/lib/fn/core/*.h) \
+	$(wildcard $(ROOT)/lib/fn/proto/*.h) \
+	$(wildcard $(ROOT)/ui/*.h)
+
 # Один бинарник на файл test_*.c — тесты не мешают друг другу.
 TEST_SRC := $(sort $(wildcard $(HOST_DIR)/test_*.c))
 TEST_BINS := $(patsubst $(HOST_DIR)/%.c,$(BUILD_DIR)/%,$(TEST_SRC))
@@ -44,10 +50,10 @@ $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
 # Любой провал компиляции или проверки — ненулевой код возврата.
-$(BUILD_DIR)/%: $(HOST_DIR)/%.c $(LIB_SRC) | $(BUILD_DIR)
+$(BUILD_DIR)/%: $(HOST_DIR)/%.c $(LIB_SRC) $(LIB_HEADERS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(INCLUDES) $< $(LIB_SRC) -o $@
 
-$(BUILD_DIR)/%-asan: $(HOST_DIR)/%.c $(LIB_SRC) | $(BUILD_DIR)
+$(BUILD_DIR)/%-asan: $(HOST_DIR)/%.c $(LIB_SRC) $(LIB_HEADERS) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer \
 		$(INCLUDES) $< $(LIB_SRC) -o $@
 

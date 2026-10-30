@@ -14,22 +14,42 @@
 #define FN_TEXT_VIEW_TOP      1
 #define FN_TEXT_VIEW_H        (64 - FN_TEXT_VIEW_TOP)
 #define FN_TEXT_MAX_WRAP_ROWS 4
+/* Максимум визуальных строк (с учётом переносов) для пошаговой прокрутки. */
+#define FN_TEXT_MAX_ROWS      48
 
 typedef struct {
     FnTextModel model;
     const Icon* image;
     uint16_t scroll_y;
     uint16_t content_height;
+    uint16_t row_offsets[FN_TEXT_MAX_ROWS];
+    uint8_t row_count;
 } FnTextViewModel;
 
 struct FnTextView {
     View* view;
 };
 
+static void fn_view_text_remember_row(FnTextViewModel* vm, int32_t y) {
+    if(y < 0 || vm->row_count >= FN_TEXT_MAX_ROWS) return;
+    vm->row_offsets[vm->row_count] = (uint16_t)y;
+    vm->row_count++;
+}
+
+static uint8_t fn_view_text_row_index(const FnTextViewModel* vm, uint16_t scroll) {
+    for(uint8_t i = 0; i < vm->row_count; ++i) {
+        if(vm->row_offsets[i] >= scroll) return i;
+    }
+    return vm->row_count ? (uint8_t)(vm->row_count - 1) : 0;
+}
+
 static uint16_t
-    fn_view_text_layout(Canvas* canvas, const FnTextModel* model, bool draw, uint16_t scroll) {
+    fn_view_text_layout(Canvas* canvas, FnTextViewModel* vm, bool draw, uint16_t scroll) {
+    const FnTextModel* model = &vm->model;
     int32_t y = FN_TEXT_VIEW_TOP - (int32_t)scroll;
     uint16_t total = FN_TEXT_VIEW_TOP;
+
+    if(!draw) vm->row_count = 0;
 
     for(uint8_t s = 0; s < model->section_count; ++s) {
         const FnTextSection* section = &model->sections[s];
@@ -47,6 +67,11 @@ static uint16_t
                     FN_UI_TEXT_W - FN_UI_MARGIN_X,
                     FN_UI_LINE_H,
                     2);
+            } else {
+                const uint8_t rows = (uint8_t)((h + FN_UI_LINE_H - 1) / FN_UI_LINE_H);
+                for(uint8_t r = 0; r < rows; ++r) {
+                    fn_view_text_remember_row(vm, y + (int32_t)r * FN_UI_LINE_H);
+                }
             }
             y += h;
             total += h;
@@ -70,6 +95,11 @@ static uint16_t
                     FN_UI_TEXT_W - FN_UI_MARGIN_X,
                     FN_UI_SMALL_H,
                     FN_TEXT_MAX_WRAP_ROWS);
+            } else {
+                const uint8_t rows = (uint8_t)((h + FN_UI_SMALL_H - 1) / FN_UI_SMALL_H);
+                for(uint8_t r = 0; r < rows; ++r) {
+                    fn_view_text_remember_row(vm, y + (int32_t)r * FN_UI_SMALL_H);
+                }
             }
             y += h;
             total += h;
@@ -94,7 +124,7 @@ static void fn_view_text_draw_callback(Canvas* canvas, void* context) {
         return;
     }
 
-    const uint16_t total = fn_view_text_layout(canvas, &model->model, false, 0);
+    const uint16_t total = fn_view_text_layout(canvas, model, false, 0);
     model->content_height = total;
 
     uint16_t scroll = model->scroll_y;
@@ -104,7 +134,7 @@ static void fn_view_text_draw_callback(Canvas* canvas, void* context) {
         model->scroll_y = scroll;
     }
 
-    fn_view_text_layout(canvas, &model->model, true, scroll);
+    fn_view_text_layout(canvas, model, true, scroll);
 
     if(total > FN_TEXT_VIEW_H) {
         elements_scrollbar(canvas, scroll, total);
@@ -125,30 +155,41 @@ static bool fn_view_text_input_callback(InputEvent* event, void* context) {
             const uint16_t max_scroll = (model->content_height > FN_TEXT_VIEW_H) ?
                                             (model->content_height - FN_TEXT_VIEW_H) :
                                             0;
-            int32_t scroll = model->scroll_y;
+            const uint8_t page_rows = FN_TEXT_VIEW_H / FN_UI_SMALL_H;
+            uint8_t index = fn_view_text_row_index(model, model->scroll_y);
+            int32_t next = index;
+
             switch(event->key) {
             case InputKeyUp:
-                scroll -= FN_UI_LINE_H;
+                next = (index > 0) ? (int32_t)index - 1 : 0;
                 consumed = true;
                 break;
             case InputKeyDown:
-                scroll += FN_UI_LINE_H;
+                next = (int32_t)index + 1;
                 consumed = true;
                 break;
             case InputKeyLeft:
-                scroll -= (FN_TEXT_VIEW_H - FN_UI_LINE_H);
+                next = (int32_t)index - page_rows;
                 consumed = true;
                 break;
             case InputKeyRight:
-                scroll += (FN_TEXT_VIEW_H - FN_UI_LINE_H);
+                next = (int32_t)index + page_rows;
                 consumed = true;
                 break;
             default:
                 break;
             }
-            if(scroll < 0) scroll = 0;
-            if(scroll > (int32_t)max_scroll) scroll = max_scroll;
-            model->scroll_y = (uint16_t)scroll;
+
+            if(consumed) {
+                if(next < 0) next = 0;
+                if(model->row_count && next >= (int32_t)model->row_count) {
+                    next = (int32_t)model->row_count - 1;
+                }
+                int32_t scroll = model->row_count ? model->row_offsets[next] : 0;
+                if(scroll < 0) scroll = 0;
+                if(scroll > (int32_t)max_scroll) scroll = max_scroll;
+                model->scroll_y = (uint16_t)scroll;
+            }
         },
         consumed);
 
@@ -171,6 +212,7 @@ FnTextView* fn_view_text_alloc(void) {
             model->image = NULL;
             model->scroll_y = 0;
             model->content_height = 0;
+            model->row_count = 0;
         },
         false);
     return text_view;
@@ -196,6 +238,7 @@ void fn_view_text_clear(FnTextView* text_view) {
             model->image = NULL;
             model->scroll_y = 0;
             model->content_height = 0;
+            model->row_count = 0;
         },
         true);
 }
@@ -255,6 +298,7 @@ void fn_view_text_commit(FnTextView* text_view) {
         {
             model->scroll_y = 0;
             model->content_height = 0;
+            model->row_count = 0;
         },
         true);
 }
@@ -269,6 +313,7 @@ void fn_view_text_set_model(FnTextView* text_view, const FnTextModel* model) {
             vm->image = NULL;
             vm->scroll_y = 0;
             vm->content_height = 0;
+            vm->row_count = 0;
         },
         true);
 }
@@ -283,6 +328,7 @@ void fn_view_text_set_image(FnTextView* text_view, const Icon* icon) {
             model->image = icon;
             model->scroll_y = 0;
             model->content_height = 0;
+            model->row_count = 0;
         },
         true);
 }

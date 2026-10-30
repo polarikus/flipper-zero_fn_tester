@@ -53,6 +53,7 @@ struct FNApp {
     FnLifeInfo* fn_life_info;
     FnTask task;
     FnOpResult op_result;
+    FnOpKind pending_op; /**< операция, которую запускает сцена ожидания */
     volatile uint32_t op_id;
 
     FnTextModel text_model;
