@@ -23,6 +23,8 @@ static void fn_scene_start_start_info(FNApp* app) {
     /* Перед новой операцией данные и результат прошлого чтения сбрасываются. */
     fn_info_reset(app->fn_info);
     memset(&app->op_result, 0, sizeof(app->op_result));
+    app->flash_preflight = false;
+    app->result_reason = FnResultReasonOperation;
     app->pending_op = FnOpReadInfo;
     scene_manager_next_scene(app->scene_manager, FNAppSceneWait);
 }
@@ -30,7 +32,22 @@ static void fn_scene_start_start_info(FNApp* app) {
 static void fn_scene_start_start_life(FNApp* app) {
     fn_life_info_reset(app->fn_life_info);
     memset(&app->op_result, 0, sizeof(app->op_result));
+    app->flash_preflight = false;
+    app->result_reason = FnResultReasonOperation;
     app->pending_op = FnOpReadLife;
+    scene_manager_next_scene(app->scene_manager, FNAppSceneWait);
+}
+
+/**
+ * «Очистка МГМ»: сначала неразрушающий Detect, затем preflight «МГМ/боевой»
+ * в сцене ожидания; подтверждение и отправка 60h+16h — только для МГМ.
+ */
+static void fn_scene_start_start_flash(FNApp* app) {
+    fn_info_reset(app->fn_info);
+    memset(&app->op_result, 0, sizeof(app->op_result));
+    app->result_reason = FnResultReasonOperation;
+    app->flash_preflight = true;
+    app->pending_op = FnOpDetect;
     scene_manager_next_scene(app->scene_manager, FNAppSceneWait);
 }
 
@@ -47,8 +64,11 @@ bool fn_scene_start_on_event(void* context, SceneManagerEvent event) {
     case FnMenuItemLifeInfo:
         fn_scene_start_start_life(app);
         return true;
+    case FnMenuItemFlashMgm:
+        fn_scene_start_start_flash(app);
+        return true;
     default:
-        /* Остальные пункты подключаются в задачах US3-US5. */
+        /* Пункты «Распиновка» и «О приложении» подключаются в US5. */
         return false;
     }
 }

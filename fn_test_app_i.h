@@ -14,6 +14,7 @@
 #include <notification/notification_messages.h>
 
 #include "lib/fn/fn.h"
+#include "ui/fn_format.h"
 #include "ui/fn_strings.h"
 #include "ui/fn_text_model.h"
 #include "ui/fn_ui.h"
@@ -27,6 +28,8 @@
 /** События приложения. */
 typedef enum {
     FNAppCustomEventWorkerResult = 0x100,
+    FNAppCustomEventConfirmAccepted = 0x101,
+    FNAppCustomEventConfirmDeclined = 0x102,
 } FNAppCustomEvent;
 
 /** Экраны приложения. */
@@ -54,6 +57,8 @@ struct FNApp {
     FnTask task;
     FnOpResult op_result;
     FnOpKind pending_op; /**< операция, которую запускает сцена ожидания */
+    bool flash_preflight; /**< Detect выполняется как проверка «МГМ/боевой» */
+    FnResultReason result_reason; /**< причина показа экрана результата */
     volatile uint32_t op_id;
 
     FnTextModel text_model;

@@ -16,7 +16,9 @@ typedef struct {
     IconAnimation* icon;
     FnWaitMode mode;
     char title[32];
-    char subtitle[48];
+    /* 96 байт: подзаголовок очистки МГМ «Может занять до 30 секунд, не
+     * прерывайте» — 73 байта UTF-8, в 48 байт он обрезался (FR-023). */
+    char subtitle[96];
     bool cancelable;
 } FnWaitModel;
 

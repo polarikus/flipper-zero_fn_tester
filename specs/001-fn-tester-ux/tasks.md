@@ -474,35 +474,43 @@ golden-кадры — общий источник истины для host- и d
 
 ### Реализация
 
-- [ ] T061 [P] [US3] Создать `ui/views/fn_view_confirm.h` и
+- [X] T061 [P] [US3] Создать `ui/views/fn_view_confirm.h` и
   `ui/views/fn_view_confirm.c`: `fn_view_confirm_set(view, title, body)` —
   `title[32]`, `body[128]`, выбранная кнопка `selected` (0 — «Отмена» по
   умолчанию, 1 — «Очистить»), `fn_view_confirm_set_callback(cb, ctx)`;
   отрисовка на `fn_font`, callback отправляет custom event
-- [ ] T062 [US3] Создать `ui/scenes/fn_scene_confirm.c`: показ предупреждения
+- [X] T062 [US3] Создать `ui/scenes/fn_scene_confirm.c`: показ предупреждения
   «Операция необратима…», «Отмена»/Back → `Start` без отправки команды,
   подтверждение → `Wait` с `FnOpFlashMgm`
-- [ ] T063 [US3] Реализовать режим `Flash` в `ui/scenes/fn_scene_wait.c`: текст
+- [X] T063 [US3] Реализовать режим `Flash` в `ui/scenes/fn_scene_wait.c`: текст
   «Очистка МГМ…», подзаголовок «Может занять до 30 секунд, не прерывайте»,
   `cancelable = false`; Back игнорируется, ожидание идёт до ответа или таймаута
   30 с; команда не дублируется; результат → `Result`
-- [ ] T064 [US3] Реализовать preflight «МГМ/боевой»: проверить `is_mgm` после
+- [X] T064 [US3] Реализовать preflight «МГМ/боевой»: проверить `is_mgm` после
   `FnOpDetect` перед показом подтверждения (в `ui/scenes/fn_scene_start.c` /
   `ui/scenes/fn_scene_wait.c`), при `is_mgm == false` — переход в `Result` с
   текстом «Очистка недоступна: ФН не является МГМ», команда не отправляется
   (FR-024, SC-009); `FlashMgm` в `lib/fn/fn_ops.c` дополнительно не собирает
   кадр при ложном признаке
-- [ ] T065 [US3] Создать `ui/scenes/fn_scene_result.c` для исходов очистки:
+- [X] T065 [US3] Создать `ui/scenes/fn_scene_result.c` для исходов очистки:
   успех («Очистка МГМ выполнена успешно»), отказ ФН (title + hint из
   `fn_error_title/hint` + «Код: 0xNN»), нет ответа («ФН не отвечает» +
   «Проверьте подключение и повторите»), Back → `Start`
-- [ ] T066 [P] [US3] Дополнить `unit_tests/lib_tests/fn/worker/fn_worker_test.c`:
+- [X] T066 [P] [US3] Дополнить `unit_tests/lib_tests/fn/worker/fn_worker_test.c`:
   `FlashMgm` + `fn_worker_cancel()` → отмена игнорируется, результат приходит по
   факту или через 30 с; тест «боевой ФН → команда не отправлена» (проверка по
   логу счётчика отправок в `lib/fn/fn_ops.c` под `FN_TESTS`)
-- [ ] T067 [US3] Приёмка US3 по `quickstart.md` §6 (пункты 9–11) на реальном МГМ
+  — **выполнено с отклонением** (см. `baseline.md` §6.4): автотест не отправляет
+  `60h`; политика отмены вынесена в `fn_op_is_cancellable()` и проверяется
+  host-тестом `tests/host/test_op_policy.c`, отправка — счётчиком
+  `fn_ops_flash_sends` в `flash_not_mgm_test`
+- [X] T067 [US3] Приёмка US3 по `quickstart.md` §6 (пункты 9–11) на реальном МГМ
   и на боевом ФН; зафиксировать 0 отправок при отказе (SC-004) и 100 % показ
   результата при нажатом Back (SC-008)
+  — **выполнено на тестовом МГМ** (`baseline.md` §6.3): подтверждение, отказ,
+  полный цикл, Back в ожидании игнорируется, результат показан (SC-004, SC-008);
+  пункт 9 для боевого ФН закрыт host-тестом и защитой в `fn_ops_flash_mgm`
+  (боевой ФН к стенду не подключался)
 
 **Checkpoint**: US3 работает независимо; изменяющая команда защищена
 подтверждением и preflight-проверкой.

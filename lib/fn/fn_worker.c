@@ -134,7 +134,7 @@ uint32_t fn_worker_get_op_id(const FNWorker* worker) {
 
 void fn_worker_cancel(FNWorker* worker) {
     if(!worker || !worker->busy) return;
-    if(worker->kind == FnOpFlashMgm) {
+    if(!fn_op_is_cancellable(worker->kind)) {
         FURI_LOG_W(TAG, "отмена очистки МГМ запрещена");
         return;
     }

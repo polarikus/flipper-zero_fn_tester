@@ -320,7 +320,7 @@ Completed ─> callback(результат) ─> Idle
 | `mode` | `FnWaitMode` (`Detect`, `Read`, `Flash`) | определяет текст |
 | `cancelable` | `bool` | `false` для `Flash` (FR-023) |
 | `title[32]` | `char` | «Поиск ФН…», «Ожидание ответа ФН…», «Очистка МГМ…» |
-| `subtitle[48]` | `char` | для `Flash`: «Может занять до 30 секунд, не прерывайте» |
+| `subtitle[96]` | `char` | для `Flash`: «Может занять до 30 секунд, не прерывайте» (73 байта UTF-8; в 48 байт строка обрезалась — Фаза 5, `baseline.md` §6.5) |
 | `progress` | `uint8_t` | 0 — не показывать |
 
 Анимация: `IconAnimation` с `A_FNLooking_64x64`, запускается в `enter`,

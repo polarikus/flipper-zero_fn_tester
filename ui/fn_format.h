@@ -7,6 +7,7 @@
  */
 #pragma once
 
+#include "../lib/fn/fn_worker.h"
 #include "../lib/fn/proto/fn_info.h"
 #include "../lib/fn/proto/fn_life.h"
 #include "fn_text_model.h"
@@ -41,6 +42,28 @@ void fn_format_info(const FnInfo* info, FnTextModel* model);
  * @param model модель экрана; полностью перезаписывается
  */
 void fn_format_life(const FnLifeInfo* life, FnTextModel* model);
+
+/**
+ * Причина показа экрана результата, если она не следует из FnOpResult.
+ */
+typedef enum {
+    FnResultReasonOperation = 0, /**< итог операции из FnOpResult */
+    FnResultReasonNotMgm, /**< preflight: ФН не МГМ, команда не отправлена */
+} FnResultReason;
+
+/**
+ * Заполнить модель экрана результата (contracts/ui.md §8.4).
+ *
+ * Секция одна — «Результат»; текст зависит от `reason`, статуса операции и
+ * кода ответа ФН. Отказ ФН описывается русским заголовком и подсказкой из
+ * `fn_error_title/hint` плюс строкой «Код: 0xNN»; неизвестный код — строкой
+ * «Неизвестный код ответа ФН: 0xNN» (FR-014, FR-024, FR-029).
+ *
+ * @param result итог операции; допускается NULL при `FnResultReasonNotMgm`
+ * @param reason причина показа результата
+ * @param model  модель экрана; полностью перезаписывается
+ */
+void fn_format_result(const FnOpResult* result, FnResultReason reason, FnTextModel* model);
 
 #ifdef __cplusplus
 }

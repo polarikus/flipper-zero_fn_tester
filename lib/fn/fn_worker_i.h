@@ -45,3 +45,11 @@ bool fn_worker_cancelled(const FNWorker* worker);
 
 /** Выполнить текущую операцию (реализация — fn_ops.c). */
 void fn_ops_run(FNWorker* worker, FnOpResult* result);
+
+#ifdef FN_TESTS
+/**
+ * Счётчик фактических отправок команды очистки МГМ (60h).
+ * Используется on-device тестом «боевой ФН — 0 отправок» (T066, SC-009).
+ */
+extern volatile uint32_t fn_ops_flash_sends;
+#endif

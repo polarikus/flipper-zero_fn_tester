@@ -6,6 +6,8 @@
 #include "unit_tests/minunit.h"
 #include "unit_tests/test_index.h"
 
+#include "lib/fn/fn_worker_i.h"
+
 #include <furi.h>
 #include <string.h>
 
@@ -169,6 +171,69 @@ MU_TEST(repeat_ops_test) {
     fn_info_free(info);
 }
 
+/**
+ * «Боевой ФН — 0 отправок» (T066, SC-009): защита в `fn_ops_flash_mgm`
+ * отсекает команду до сборки кадра, счётчик отправок не растёт.
+ */
+MU_TEST(flash_not_mgm_test) {
+    FNWorker* worker = fn_test_get_worker();
+    if(!worker) {
+        printf("[SKIP] flash_not_mgm_test: воркер приложения не запущен\r\n");
+        return;
+    }
+    if(fn_worker_is_busy(worker)) {
+        printf("[SKIP] flash_not_mgm_test: воркер занят операцией приложения\r\n");
+        return;
+    }
+
+    FnInfo* info = fn_info_alloc();
+    mu_assert(info != NULL, "нет памяти под FnInfo");
+    fn_info_reset(info);
+    /* Признак МГМ не подтверждён данными 33h — команда запрещена. */
+    info->has_fw = true;
+    info->fw.is_mgm = false;
+
+    FnTask task = {.info = info, .life = NULL};
+    const uint32_t sends_before = fn_ops_flash_sends;
+
+    mu_assert(fn_worker_start(worker, FnOpFlashMgm, &task, test_callback, NULL), "старт FlashMgm");
+    mu_assert(test_wait(4000), "FlashMgm не завершился за 4 с");
+    mu_assert_int_eq(1, test_callback_count);
+    mu_assert_int_eq(FnOpFlashMgm, test_result_kind);
+    mu_assert_int_eq(FnOpStatusInternalError, test_result_status);
+    mu_assert_int_eq((int)sends_before, (int)fn_ops_flash_sends);
+    mu_assert(!fn_worker_is_busy(worker), "после отказа воркер свободен");
+
+    fn_info_free(info);
+}
+
+/**
+ * Отмена очистки МГМ игнорируется (T066, FR-015).
+ *
+ * Проверка выполняется без отправки 60h: автоматический прогон не должен
+ * очищать подключённый МГМ (FR-012 требует явного подтверждения, SC-004).
+ * Политика отмены — `fn_op_is_cancellable` (host-тест test_op_policy.c),
+ * а факт «результат приходит по факту/30 с» проверяется приёмкой T067 на
+ * тестовом МГМ вручную.
+ */
+MU_TEST(flash_cancel_ignored_test) {
+    mu_assert(!fn_op_is_cancellable(FnOpFlashMgm), "очистка МГМ не отменяется");
+    mu_assert(fn_op_is_cancellable(FnOpDetect), "Detect отменяется");
+    mu_assert(fn_op_is_cancellable(FnOpReadInfo), "ReadInfo отменяется");
+    mu_assert(fn_op_is_cancellable(FnOpReadLife), "ReadLife отменяется");
+
+    FNWorker* worker = fn_test_get_worker();
+    if(!worker) {
+        printf("[SKIP] flash_cancel_ignored_test: воркер приложения не запущен\r\n");
+        return;
+    }
+    /* fn_worker_cancel для свободного воркера — no-op без побочных эффектов. */
+    if(!fn_worker_is_busy(worker)) {
+        fn_worker_cancel(worker);
+        mu_assert(!fn_worker_is_busy(worker), "отмена свободного воркера ничего не меняет");
+    }
+}
+
 MU_TEST_SUITE(fn_worker_test_suite) {
     MU_SUITE_CONFIGURE(&test_setup, &test_teardown);
 
@@ -176,6 +241,8 @@ MU_TEST_SUITE(fn_worker_test_suite) {
     MU_RUN_TEST(read_info_test);
     MU_RUN_TEST(cancel_test);
     MU_RUN_TEST(repeat_ops_test);
+    MU_RUN_TEST(flash_not_mgm_test);
+    MU_RUN_TEST(flash_cancel_ignored_test);
 }
 
 int run_minunit_test_fn_worker(void) {

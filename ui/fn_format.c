@@ -367,3 +367,75 @@ void fn_format_life(const FnLifeInfo* life, FnTextModel* model) {
     format_section_life_days(model, life);
     format_section_memory(model, life);
 }
+
+/** Отказ ФН: русский заголовок, подсказка и код ответа (FR-014, FR-029). */
+static void format_result_refused(FnTextSection* section, FNError error) {
+    if(!fn_error_is_known(error)) {
+        format_line(section, FnTextStyleWarning, FN_STR_UNKNOWN_CODE_FMT, (unsigned)error);
+        return;
+    }
+
+    format_line(section, FnTextStyleWarning, "%s", fn_error_title(error));
+    const char* hint = fn_error_hint(error);
+    if(hint && hint[0] != '\0') {
+        format_line(section, FnTextStyleNormal, "%s", hint);
+    }
+    format_line(section, FnTextStyleNormal, FN_STR_ERROR_CODE_FMT, (unsigned)error);
+}
+
+void fn_format_result(const FnOpResult* result, FnResultReason reason, FnTextModel* model) {
+    if(!model) return;
+
+    memset(model, 0, sizeof(*model));
+
+    FnTextSection* section = format_section(model, FN_STR_RESULT_TITLE);
+    if(!section) return;
+
+    if(reason == FnResultReasonNotMgm) {
+        format_line(section, FnTextStyleWarning, "%s", FN_STR_NOT_MGM);
+        return;
+    }
+
+    if(!result) {
+        format_line(section, FnTextStyleNormal, "%s", FN_STR_NO_DATA);
+        return;
+    }
+
+    switch(result->status) {
+    case FnOpStatusOk:
+        /* Успех показывается только для изменяющей команды. */
+        if(result->kind == FnOpFlashMgm) {
+            format_line(section, FnTextStyleNormal, "%s", FN_STR_RESULT_OK);
+        } else {
+            format_line(section, FnTextStyleNormal, "%s", FN_STR_NO_DATA);
+        }
+        break;
+    case FnOpStatusFnRefused:
+        format_result_refused(section, result->error);
+        break;
+    case FnOpStatusNoResponse:
+        format_line(section, FnTextStyleWarning, "%s", FN_STR_NO_RESPONSE);
+        format_line(section, FnTextStyleNormal, "%s", FN_STR_NO_RESPONSE_HINT);
+        break;
+    case FnOpStatusBadFrame:
+        format_line(section, FnTextStyleWarning, "%s", FN_STR_BAD_FRAME);
+        break;
+    case FnOpStatusBusy:
+        format_line(section, FnTextStyleWarning, "%s", FN_STR_BUSY);
+        break;
+    case FnOpStatusInternalError:
+        /* Для очистки МГМ внутренняя ошибка — единственная защита от отправки
+         * команды в ФН, не подтверждённый как МГМ (FR-024). */
+        format_line(
+            section,
+            FnTextStyleWarning,
+            "%s",
+            (result->kind == FnOpFlashMgm) ? FN_STR_NOT_MGM : FN_STR_PORT_BUSY);
+        break;
+    case FnOpStatusCancelled:
+    default:
+        /* Отменённая операция не показывает результат (пользователь уже в меню). */
+        format_line(section, FnTextStyleNormal, "%s", FN_STR_NO_DATA);
+        break;
+    }
+}

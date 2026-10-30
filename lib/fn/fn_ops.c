@@ -10,6 +10,11 @@
 
 #define TAG "FNOps"
 
+#ifdef FN_TESTS
+/* Определение счётчика отправок очистки МГМ (T066, SC-009). */
+volatile uint32_t fn_ops_flash_sends = 0;
+#endif
+
 /** Отправить одну команду и разобрать ответ. */
 static FnOpStatus fn_ops_command(
     FNWorker* worker,
@@ -195,15 +200,23 @@ static FnOpStatus fn_ops_read_life(FNWorker* worker, FnOpResult* result) {
 
 /** FlashMgm: ровно одна отправка 60h+16h без повторов. */
 static FnOpStatus fn_ops_flash_mgm(FNWorker* worker, FnOpResult* result) {
-    FnInfo* info = worker->task->info;
-    if(info && info->has_fw && !info->fw.is_mgm) {
-        FURI_LOG_E(TAG, "очистка МГМ запрещена: ФН определен как боевой");
+    const FnInfo* info = worker->task->info;
+    /* Защита в глубину: команда уходит только в ФН, подтверждённый как МГМ
+     * данными 33h (FR-024, SC-009). Признак не подтверждён — не собираем кадр. */
+    if(!info || !info->has_fw || !info->fw.is_mgm) {
+        FURI_LOG_E(TAG, "очистка МГМ запрещена: ФН не определён как МГМ");
         return FnOpStatusInternalError;
     }
 
     const uint8_t param = FN_CMD_FLASH_MGM_PARAM;
     FnFrame frame;
     FNError error = FNOk;
+
+#ifdef FN_TESTS
+    /* Счётчик отправок для on-device теста (T066): проверка «0 отправок». */
+    fn_ops_flash_sends++;
+#endif
+
     const FnOpStatus status = fn_ops_command(
         worker, FN_CMDFlashMGM, &param, 1, FN_OP_DEADLINE_FLASH_MS, &frame, &error);
     if(status != FnOpStatusOk) {
@@ -235,7 +248,7 @@ void fn_ops_run(FNWorker* worker, FnOpResult* result) {
         break;
     }
 
-    if(worker->cancel_requested && (worker->kind != FnOpFlashMgm)) {
+    if(worker->cancel_requested && fn_op_is_cancellable(worker->kind)) {
         result->status = FnOpStatusCancelled;
         result->error = FNOk;
     }

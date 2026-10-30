@@ -42,6 +42,16 @@ typedef enum {
     FnOpStatusInternalError,
 } FnOpStatus;
 
+/**
+ * Можно ли отменить операцию пользователем.
+ *
+ * Очистка МГМ необратима и не прерывается (FR-015, FR-023): Back во время
+ * ожидания игнорируется, отмена не запрашивается ни сценой, ни воркером.
+ */
+static inline bool fn_op_is_cancellable(FnOpKind kind) {
+    return kind != FnOpFlashMgm;
+}
+
 /** Результат завершенной операции. */
 typedef struct {
     uint32_t id;
