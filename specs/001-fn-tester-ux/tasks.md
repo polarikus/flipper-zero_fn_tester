@@ -50,33 +50,33 @@ golden-кадры — общий источник истины для host- и d
 **Purpose**: Зафиксировать текущее поведение и создать каркас host-тестов, чтобы
 этап R1 (атомарная замена байтового слоя) можно было доказать побайтово.
 
-- [ ] T001 Создать `tests/host/Makefile`: цели `test`, `asan`, `check-layers`,
+- [X] T001 Создать `tests/host/Makefile`: цели `test`, `asan`, `check-layers`,
   компиляция `cc -std=c11 -Wall -Wextra -Werror`; include-пути: `lib/fn/core`,
   `lib/fn/proto` и `ui` (только ради `fn_strings.h`, `fn_text_model.h`,
   `fn_format.c`); запрещено включать `ui/views`, `ui/scenes`, `ui/fn_font.*`
   и любые пути SDK; собираются `lib/fn/core/*.c`, `lib/fn/proto/*.c` и
   `ui/fn_format.c`; ненулевой код возврата при любом падении
-- [ ] T002 [P] Создать `tests/host/shim/furi.h` (минимальная заглушка
+- [X] T002 [P] Создать `tests/host/shim/furi.h` (минимальная заглушка
   `furi_crash`) и `tests/host/test_wire_legacy.c` — тест-«ловушка»,
   фиксирующий фактическое поведение старых helper'ов:
   `two_uint8t_to_uint16t_LE({0x01,0x02}) == 0x0102` (big-endian),
   `two_uint8t_to_uint16t_BE({0x01,0x02}) == 0x0201` (little-endian),
   `calc_crc16()` переставляет байты в возвращаемом значении
-- [ ] T003 [P] Перенести golden-кадры из
+- [X] T003 [P] Перенести golden-кадры из
   `.opencode/skills/fn-protocol/examples/frames.md` в `tests/host/golden_frames.h`
   как `static const` массивы (запросы `30h/31h/32h/33h/3Ah/3Bh/3Dh/60h`, ответы
   `30h` обычный и с `0x80`, `32h`, `3Ah`, `3Bh`, `3Dh` 8/9 байт, отказ `03h`)
-- [ ] T004 [P] Создать `tests/host/check_layers.sh`: падать, если в
+- [X] T004 [P] Создать `tests/host/check_layers.sh`: падать, если в
   `lib/fn/core/` и `lib/fn/proto/` встречаются `furi`, `gui/`, `furi_hal`; в
   `ui/` — `fn_uart`, `fn_frame`, `fn_parse_`, `fn_wire`, `FN_CMD`; в `lib/fn` —
   `fn_test_app`, `scene_`, `view_`; в `ui/fn_format.c`, `ui/fn_text_model.h`,
   `ui/fn_strings.h` — дополнительно `gui/`, `view_`, `scene_` (эти файлы
   host-тестируемы и не должны тянуть GUI); в `ui/views/` и `ui/scenes/` —
   `fn_parse_`, `fn_wire`, `FN_CMD`
-- [ ] T005 Замерить и записать baseline в `specs/001-fn-tester-ux/baseline.md`:
+- [X] T005 Замерить и записать baseline в `specs/001-fn-tester-ux/baseline.md`:
   `free` до запуска и после выхода, `top` (стек UART/воркера), `Leaked` из
   отчёта `units.py`, время до данных US1
-- [ ] T006 Проверить, что тестовый профиль собирается и работает до рефакторинга:
+- [X] T006 Проверить, что тестовый профиль собирается и работает до рефакторинга:
   `FN_TESTS=1 ufbt` (cdefines из `application.fam`) и
   `FN_TESTS=1 ufbt launch` + `python3 .test_scripts/units.py <NAME>`; зафиксировать
   `Status: PASSED` и текущий список наборов из `unit_tests/test_index.c`
