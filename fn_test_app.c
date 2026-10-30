@@ -1,12 +1,29 @@
 #include "fn_test_app_i.h"
-#include "fn_objects/fn_info/fn_i.h"
+
+#include "ui/scenes/fn_scene.h"
+
 #ifdef FN_TESTS
 #include "unit_tests/test_index.h"
 #endif
-#include <furi.h>
 
-#define TAG        "FNTest"
 #define WORKER_TAG TAG "App"
+
+void fn_test_app_handle_worker_result(void* context, const FnOpResult* result) {
+    furi_assert(context);
+    furi_assert(result);
+    FNApp* app = context;
+
+    /* Результат записывается ДО события: очередь dispatcher-а обеспечивает
+     * видимость данных в GUI-потоке (contracts/worker-events.md §1). */
+    app->op_result = *result;
+    view_dispatcher_send_custom_event(app->view_dispatcher, FNAppCustomEventWorkerResult);
+}
+
+static void fn_test_app_menu_callback(void* context, uint8_t index) {
+    furi_assert(context);
+    FNApp* app = context;
+    view_dispatcher_send_custom_event(app->view_dispatcher, index);
+}
 
 static bool fn_test_app_custom_event_callback(void* context, uint32_t event) {
     furi_assert(context);
@@ -20,117 +37,131 @@ static bool fn_test_app_back_event_callback(void* context) {
     return scene_manager_handle_back_event(app->scene_manager);
 }
 
-static void fn_test_app_tick_event_callback(void* context) {
-    furi_assert(context);
-    FNApp* app = context;
-    scene_manager_handle_tick_event(app->scene_manager);
-}
-
 FNApp* fn_test_app_alloc(void) {
-    FURI_LOG_D(WORKER_TAG, "Start AppAlloc");
+    FURI_LOG_D(WORKER_TAG, "начало инициализации");
+
     FNApp* app = malloc(sizeof(FNApp));
+    furi_check(app);
+    memset(app, 0, sizeof(FNApp));
 
     app->gui = furi_record_open(RECORD_GUI);
     app->notifications = furi_record_open(RECORD_NOTIFICATION);
-    app->dialogs = furi_record_open(RECORD_DIALOGS);
-    app->submenu = submenu_alloc();
-    app->widget = widget_alloc();
-    app->view_detect = fn_test_view_detect_alloc();
-    app->view_progress = fn_test_view_progress_alloc();
+
+    app->fn_info = fn_info_alloc();
+    app->fn_life_info = fn_life_info_alloc();
+    if(!app->fn_info || !app->fn_life_info) {
+        FURI_LOG_E(WORKER_TAG, "нет памяти под модели ФН");
+        goto error;
+    }
+    app->task.info = app->fn_info;
+    app->task.life = app->fn_life_info;
+
+    app->view_menu = fn_view_menu_alloc();
+    app->view_wait = fn_view_wait_alloc();
+    app->view_text = fn_view_text_alloc();
+    app->view_confirm = fn_view_confirm_alloc();
+    if(!app->view_menu || !app->view_wait || !app->view_text || !app->view_confirm) {
+        FURI_LOG_E(WORKER_TAG, "нет памяти под экраны");
+        goto error;
+    }
+    fn_view_menu_set_callback(app->view_menu, fn_test_app_menu_callback, app);
+
     app->worker = fn_worker_alloc();
-    app->popup = popup_alloc();
-    app->fn_info = malloc(sizeof(FNInfo));
-    app->fn_info->serial_number[0] = 'N';
+    if(!app->worker) {
+        FURI_LOG_E(WORKER_TAG, "%s", FN_STR_PORT_BUSY);
+        goto error;
+    }
 
     app->view_dispatcher = view_dispatcher_alloc();
-
-    app->scene_manager = scene_manager_alloc(&fn_test_scene_handlers, app);
+    app->scene_manager = scene_manager_alloc(&fn_scene_handlers, app);
+    furi_check(app->view_dispatcher);
+    furi_check(app->scene_manager);
 
     view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
-    view_dispatcher_set_tick_event_callback(
-        app->view_dispatcher, fn_test_app_tick_event_callback, 500);
     view_dispatcher_set_custom_event_callback(
         app->view_dispatcher, fn_test_app_custom_event_callback);
     view_dispatcher_set_navigation_event_callback(
         app->view_dispatcher, fn_test_app_back_event_callback);
-    view_dispatcher_add_view(
-        app->view_dispatcher, FNTestViewSubmenu, submenu_get_view(app->submenu));
-    view_dispatcher_add_view(app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
-    //view_dispatcher_add_view(
-    //  app->view_dispatcher, FNTestViewDialogEx, dialog_ex_get_view(app->dialog_ex));
-    // view_dispatcher_add_view(
-    //   app->view_dispatcher, FNTestViewPopup, popup_get_view(app->popup));
-    view_dispatcher_add_view(app->view_dispatcher, FNTestViewWidget, widget_get_view(app->widget));
-    view_dispatcher_add_view(
 
-        app->view_dispatcher, FNTestViewDetect, fn_test_view_detect_get_view(app->view_detect));
     view_dispatcher_add_view(
-        app->view_dispatcher,
-        FNTestViewProgress,
-        fn_test_view_progress_get_view(app->view_progress));
+        app->view_dispatcher, FNAppViewMenu, fn_view_menu_get_view(app->view_menu));
+    view_dispatcher_add_view(
+        app->view_dispatcher, FNAppViewWait, fn_view_wait_get_view(app->view_wait));
+    view_dispatcher_add_view(
+        app->view_dispatcher, FNAppViewText, fn_view_text_get_view(app->view_text));
+    view_dispatcher_add_view(
+        app->view_dispatcher, FNAppViewConfirm, fn_view_confirm_get_view(app->view_confirm));
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
     scene_manager_next_scene(app->scene_manager, FNAppSceneStart);
+
 #ifdef FN_TESTS
     fn_register_tests(app->worker);
+    app->tests_registered = true;
 #endif
-    FURI_LOG_D(WORKER_TAG, "End AppAlloc");
+
+    FURI_LOG_D(WORKER_TAG, "инициализация завершена");
     return app;
+
+error:
+    /* Освобождаем уже созданное и выходим без краша. */
+    fn_test_app_free(app);
+    return NULL;
 }
 
 void fn_test_app_free(FNApp* app) {
-    furi_assert(app);
+    if(!app) return;
+
 #ifdef FN_TESTS
-    fn_unregister_tests();
+    if(app->tests_registered) {
+        fn_unregister_tests();
+        app->tests_registered = false;
+    }
 #endif
-    free(app->fn_info);
 
-    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewSubmenu);
-    //view_dispatcher_remove_view(app->view_dispatcher, SPIMemViewDialogEx);
-    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewPopup);
-    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewWidget);
-    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewDetect);
-    view_dispatcher_remove_view(app->view_dispatcher, FNTestViewProgress);
-    //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewProgress);
-    //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewDetect);
-    //view_dispatcher_remove_view(instance->view_dispatcher, SPIMemViewTextInput);
-    submenu_free(app->submenu);
-    widget_free(app->widget);
-    fn_test_view_detect_free(app->view_detect);
-    fn_test_view_progress_free(app->view_progress);
+    if(app->view_dispatcher) {
+        if(app->view_menu) view_dispatcher_remove_view(app->view_dispatcher, FNAppViewMenu);
+        if(app->view_wait) view_dispatcher_remove_view(app->view_dispatcher, FNAppViewWait);
+        if(app->view_text) view_dispatcher_remove_view(app->view_dispatcher, FNAppViewText);
+        if(app->view_confirm) view_dispatcher_remove_view(app->view_dispatcher, FNAppViewConfirm);
+    }
 
-    fn_worker_free(app->worker);
+    fn_view_menu_free(app->view_menu);
+    fn_view_wait_free(app->view_wait);
+    fn_view_text_free(app->view_text);
+    fn_view_confirm_free(app->view_confirm);
 
-    // Views
-    //view_dispatcher_remove_view(app->view_dispatcher, BarCodeAppViewWork);
-    //bc_scanner_free(app->bc_scanner_view);
+    if(app->worker) {
+        if(!fn_worker_is_busy(app->worker)) {
+            fn_worker_free(app->worker);
+        } else {
+            FURI_LOG_W(WORKER_TAG, "воркер занят, освобождение отложено");
+        }
+    }
 
-    // Custom Widget
-    //view_dispatcher_remove_view(app->view_dispatcher, BarCodeAppViewError);
+    fn_info_free(app->fn_info);
+    fn_life_info_free(app->fn_life_info);
 
-    // View dispatcher
-    view_dispatcher_free(app->view_dispatcher);
-    scene_manager_free(app->scene_manager);
-    popup_free(app->popup);
+    if(app->view_dispatcher) view_dispatcher_free(app->view_dispatcher);
+    if(app->scene_manager) scene_manager_free(app->scene_manager);
 
-    // Close records
-    furi_record_close(RECORD_GUI);
-    furi_record_close(RECORD_NOTIFICATION);
-    furi_record_close(RECORD_DIALOGS);
-
-    //furi_string_free(app->file_path);
+    if(app->notifications) furi_record_close(RECORD_NOTIFICATION);
+    if(app->gui) furi_record_close(RECORD_GUI);
 
     free(app);
-    FURI_LOG_D(WORKER_TAG, "App Free");
+    FURI_LOG_D(WORKER_TAG, "приложение освобождено");
 }
 
 int32_t fn_test_app(void* p) {
     UNUSED(p);
-    FURI_LOG_D(WORKER_TAG, "Start App");
-    FNApp* fn_test_app = fn_test_app_alloc();
 
-    view_dispatcher_run(fn_test_app->view_dispatcher);
+    FNApp* app = fn_test_app_alloc();
+    if(!app) {
+        FURI_LOG_E(WORKER_TAG, "%s", FN_STR_PORT_BUSY);
+        return 1;
+    }
 
-    fn_test_app_free(fn_test_app);
+    view_dispatcher_run(app->view_dispatcher);
+    fn_test_app_free(app);
     return 0;
 }

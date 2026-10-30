@@ -1,70 +1,67 @@
+/**
+ * @file fn_test_app_i.h
+ * @brief Приватное состояние приложения FN Tester.
+ */
 #pragma once
 
 #include "fn_test_app.h"
-#include "scenes/fn_test_scene.h"
 
 #include <fn_test_icons.h>
 #include <furi.h>
 #include <gui/gui.h>
+#include <gui/scene_manager.h>
 #include <gui/view_dispatcher.h>
-#include <gui/modules/submenu.h>
-#include <gui/modules/dialog_ex.h>
-#include <gui/modules/popup.h>
 #include <notification/notification_messages.h>
-#include <dialogs/dialogs.h>
-#include <gui/modules/widget.h>
-#include <gui/modules/text_input.h>
 
-#include "views/fn_test_view_detect.h"
-#include "views/fn_test_view_progress.h"
-
-#include "lib/fn/fn_worker.h"
-#include "lib/fn/fn_objects/fn_info/fn.h"
-#include "lib/fn/errors/fn_errors.h"
+#include "lib/fn/fn.h"
+#include "ui/fn_strings.h"
+#include "ui/fn_text_model.h"
+#include "ui/fn_ui.h"
+#include "ui/views/fn_view_confirm.h"
+#include "ui/views/fn_view_menu.h"
+#include "ui/views/fn_view_text.h"
+#include "ui/views/fn_view_wait.h"
 
 #define TAG "FNTest"
 
+/** События приложения. */
 typedef enum {
-    FNModeGetFNInfo,
-    FNModeGetFNLifeInfo,
-    FNModeGetLastDocInfo,
-    FNModeGetRegInfo,
-    FNModeGetSessionInfo,
-    FNModeTestSell,
-    FNModeCloseSession,
-    FNModeFlashMGM,
-    FNModeCloseFN,
-    FNModeUnknown
-} FNAppMode;
+    FNAppCustomEventWorkerResult = 0x100,
+} FNAppCustomEvent;
+
+/** Экраны приложения. */
+typedef enum {
+    FNAppViewMenu,
+    FNAppViewWait,
+    FNAppViewText,
+    FNAppViewConfirm,
+} FNAppView;
 
 struct FNApp {
     Gui* gui;
+    NotificationApp* notifications;
     ViewDispatcher* view_dispatcher;
     SceneManager* scene_manager;
-    NotificationApp* notifications;
-    DialogsApp* dialogs;
-    DialogEx* dialog_ex;
-    Widget* widget;
-    Submenu* submenu;
-    Popup* popup;
-    FNError last_fn_error;
-
-    FNAppMode mode;
     FNWorker* worker;
 
-    FNInfo* fn_info;
-    void* fn_tmp_data;
+    FnMenuView* view_menu;
+    FnWaitView* view_wait;
+    FnTextView* view_text;
+    FnConfirmView* view_confirm;
 
-    FNDetectView* view_detect;
-    FNProgressView* view_progress;
+    FnInfo* fn_info;
+    FnLifeInfo* fn_life_info;
+    FnTask task;
+    FnOpResult op_result;
+    volatile uint32_t op_id;
+
+    FnTextModel text_model;
+
+    bool tests_registered;
 };
 
-typedef enum {
-    FNTestViewSubmenu,
-    //FNTestViewDialogEx,
-    FNTestViewPopup,
-    FNTestViewWidget,
-    FNTestViewProgress,
-    FNTestViewDetect
-} FNAppView;
-//TODO bit_buffer в прошивке флиппера есть.
+/**
+ * Callback воркера: сохраняет результат и шлёт FNAppCustomEventWorkerResult.
+ * Сцены передают его в fn_worker_start() (contracts/worker-events.md §1).
+ */
+void fn_test_app_handle_worker_result(void* context, const FnOpResult* result);

@@ -39,7 +39,10 @@ scan() {
     checked=$((checked + 1))
 
     local hits
-    hits="$(grep -rnE -- "$pattern" "${existing[@]}" 2>/dev/null || true)"
+    # Комментарии не считаем нарушением: в них допустимо упоминать запрещённые
+    # имена (например, «файл не включает gui/ и furi»).
+    hits="$(grep -rnE -- "$pattern" "${existing[@]}" 2>/dev/null \
+        | grep -vE '^[^:]+:[0-9]+:[[:space:]]*(//|\*|/\*)' || true)"
     if [ -n "$hits" ]; then
         printf '  x %s: запрещено /%s/\n' "$label" "$pattern"
         printf '%s\n' "$hits" | sed 's/^/      /'

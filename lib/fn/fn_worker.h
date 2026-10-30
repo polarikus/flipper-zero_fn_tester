@@ -1,87 +1,91 @@
-//
-// Created by Игорь Данилов on 23.02.2023.
-//
+/**
+ * @file fn_worker.h
+ * @brief Воркер операций ФН: одна активная операция, дедлайны, отмена.
+ *
+ * Потребитель — только ui/ и fn_test_app.c. Результат доставляется
+ * callback-ом из потока воркера ровно один раз (contracts/worker-events.md).
+ */
 #pragma once
 
-#include <furi.h>
-#include "fn_objects/fn_info/fn.h"
-#include "fn_objects/life_info/fn_life_info.h"
-#include "errors/fn_errors.h"
+#include "core/fn_error.h"
+#include "proto/fn_info.h"
+#include "proto/fn_life.h"
+
+#include <stdbool.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define FN_CMD_TIMEOUT_MS 300u /**< ожидание ответа на одну команду */
+#define FN_OP_DEADLINE_READ_MS 10000u /**< дедлайн операций чтения */
+#define FN_OP_DEADLINE_FLASH_MS 30000u /**< дедлайн очистки МГМ */
+#define FN_DETECT_ATTEMPTS 3u /**< попыток определения ФН */
+
+/** Тип операции. */
+typedef enum {
+    FnOpDetect,
+    FnOpReadInfo,
+    FnOpReadLife,
+    FnOpFlashMgm,
+} FnOpKind;
+
+/** Итог операции. */
+typedef enum {
+    FnOpStatusOk,
+    FnOpStatusNoResponse,
+    FnOpStatusFnRefused,
+    FnOpStatusBadFrame,
+    FnOpStatusCancelled,
+    FnOpStatusBusy,
+    FnOpStatusInternalError,
+} FnOpStatus;
+
+/** Результат завершенной операции. */
+typedef struct {
+    uint32_t id;
+    FnOpKind kind;
+    FnOpStatus status;
+    FNError error;
+    bool has_warning;
+} FnOpResult;
+
+/** Выходные данные операции; владелец — вызывающий. */
+typedef struct {
+    FnInfo* info; /**< обязателен для Detect/ReadInfo */
+    FnLifeInfo* life; /**< обязателен для ReadLife */
+} FnTask;
 
 typedef struct FNWorker FNWorker;
 
-typedef struct {
-    void (*const process)(FNWorker* worker);
-} FNWorkerModeType;
+/** Callback завершения операции (вызывается из потока воркера). */
+typedef void (*FnWorkerCallback)(void* context, const FnOpResult* result);
 
-typedef enum {
-    FNCustomEventWorkerFNIdentified,
-    FNCustomEventWorkerFNNotResponse,
-    FNCustomEventWorkerFNError,
-    FNCustomEventWorkerDone
-} FNCustomEventWorker;
+FNWorker* fn_worker_alloc(void);
 
-typedef enum {
-    FNRxStatusOk,
-    FNRxEmpty,
-    FNRxStreamError,
-    FNRxTimeout
-} RxStatus;
-
-typedef void (*FNWorkerCallback)(void* context, FNCustomEventWorker event, FNError error);
-
-void uart_thread_cb(uint8_t* buff, size_t len ,void * ctx);
-
-/**
- * Выделить память под воркер (10240 стек задачи)
- * @return указатель на воркер
- */
-FNWorker* fn_worker_alloc();
-/**
- * Высвободить память воркера; Перед этим нужно завершить задачу
- * @param worker
- */
+/** Освободить воркер; требует, чтобы операция не была активна. */
 void fn_worker_free(FNWorker* worker);
-/**
- * Запустить задачу воркера
- * @param worker
- */
-void fn_worker_start_thread(FNWorker* worker);
-/**
- * Остановить задачу воркера
- * @param worker
- */
-void fn_worker_stop_thread(FNWorker* worker);
-/**
- * Проверить остановлен ли воркер
- * @param worker
- * @return
- */
-bool fn_worker_check_for_stop(FNWorker* worker);
-
-RxStatus fn_worker_wait_uart_cb(FNWorker* worker, uint32_t timeout);
 
 /**
- * Определить подключен ли ФН
- * @param fn_info Указатель на FNInfo с основной информацией о подключенном ФН
- * @param worker Указатель на FN воркер
- * @param callback Колбек, куда придёт статус по завершению задачи
- * @param context Контекст с приложением, которое вызвало функцию
+ * Запустить операцию, не блокируя вызывающий поток.
+ * @return false, если воркер занят (callback не вызывается)
  */
-void fn_worker_fn_detect_start(
-    FNInfo* fn_info,
+bool fn_worker_start(
     FNWorker* worker,
-    FNWorkerCallback callback,
+    FnOpKind kind,
+    FnTask* task,
+    FnWorkerCallback callback,
     void* context);
 
-void fn_worker_get_life_info_start(
-    FNLifeInfo* fn_life_info,
-    FNWorker* worker,
-    FNWorkerCallback callback,
-    void* context);
+/** Идентификатор запущенной операции (для сравнения с FnOpResult.id). */
+uint32_t fn_worker_get_op_id(const FNWorker* worker);
 
-void fn_worker_flash_MGM_start(
-    FNWorker* worker,
-    FNWorkerCallback callback,
-    void* context);
+/** Отменить операцию, не блокируя поток; для FlashMgm игнорируется. */
+void fn_worker_cancel(FNWorker* worker);
 
+bool fn_worker_is_busy(const FNWorker* worker);
+
+#ifdef __cplusplus
+}
+#endif

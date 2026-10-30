@@ -96,48 +96,48 @@ golden-кадры — общий источник истины для host- и d
 
 ### R1. Кадр и байтовый порядок (атомарная замена)
 
-- [ ] T007 Создать `lib/fn/core/fn_types.h`: `Date`/`DateTime` (`year` 0–99,
+- [X] T007 Создать `lib/fn/core/fn_types.h`: `Date`/`DateTime` (`year` 0–99,
   `month` 1–12 — исправлено с `mouth`, `day` 1–31, `hour` 0–23, `minute` 0–59),
   `FnStage` (`0x01/0x03/0x07/0x0F`, иное → `FnStageUnknown`), `FnFfd`
   (`0/1/3/4`), `FnDocCode` (`0x00–0x17` по таблице `data-model.md` §1.4),
   `FnWarnFlags` (биты `0x01–0x80`, сравнение только по полному значению,
   побитовые проверки этапа не используются)
-- [ ] T007a [P] Создать `lib/fn/core/fn_types.c`: `fn_date_is_valid()` /
+- [X] T007a [P] Создать `lib/fn/core/fn_types.c`: `fn_date_is_valid()` /
   `fn_datetime_is_valid()` (год 0–99, месяц 1–12, день 1–31, час 0–23,
   минута 0–59; `NULL` → `false`), `fn_stage_text()`, `fn_ffd_text()`
   («1.05» / «1.1» / «1.2» / «Не активизирован»), `fn_doc_text()`
   («Неизвестный документ (0xNN)» для `FnDocUnknown`), `fn_warn_flag_text()`
   (ровно одна маска `0x01–0x40`, иначе `NULL`) и `fn_warn_flags_unknown()`
   (`flags & 0x80`); тексты — статические строки, без `malloc`
-- [ ] T008 [P] Создать `lib/fn/core/fn_wire.h` и `lib/fn/core/fn_wire.c`:
+- [X] T008 [P] Создать `lib/fn/core/fn_wire.h` и `lib/fn/core/fn_wire.c`:
   `fn_wire_u16le_get/put`, `fn_wire_u32le_get/put`,
   `fn_wire_crc16_ccitt(data, len)` (init `0xFFFF`, полином `0x1021`, MSB-first,
   возвращает **число без перестановки**), `NULL`/`len == 0` — не падение
   (`get` → 0, `put` — no-op); BE-помощников не вводить
-- [ ] T009 [P] Создать `lib/fn/core/fn_frame.h` и `lib/fn/core/fn_frame.c`:
+- [X] T009 [P] Создать `lib/fn/core/fn_frame.h` и `lib/fn/core/fn_frame.c`:
   `FN_FRAME_MAX_LEN 256`, `FN_FRAME_OVERHEAD 6`, `FN_FRAME_MAX_PAYLOAD 250`,
   `FnFrameStatus` (`Ok/Null/TooShort/TooLong/WrongStart/LengthMismatch/WrongCrc`),
   `FnFrame` (`command`, `code = command & 0x7F`, `has_warning = command & 0x80`,
   `data` — view внутрь `buf`, `data_len`), `fn_frame_build()` в буфер
   вызывающего без `malloc`, `fn_frame_parse()` без копирования; порядок
   проверок: `NULL` → границы → `START` → `LEN == len - 5` → CRC последним
-- [ ] T010 Написать host-тесты `tests/host/test_types.c`, `tests/host/test_wire.c`,
+- [X] T010 Написать host-тесты `tests/host/test_types.c`, `tests/host/test_wire.c`,
   `tests/host/test_frame.c`: `fn_date_is_valid`/`fn_datetime_is_valid` на
   границах (месяц 0/13, день 0/32, час 24, минута 60);
   `fn_wire_u16le_get({0x68,0x01}) == 0x0168`; CRC кадра `04 01 00 30` по
   `01 00 30` = `0xCDFF` (LE `FF CD`); побайтовая сборка всех golden-запросов;
   разбор всех golden-ответов; негативные: пустой буфер, `len=5`, `START != 04`,
   `LEN` ±1, битый CRC, `len=257`, граница payload `LEN=250`, round-trip u16/u32
-- [ ] T011 [P] Создать `unit_tests/lib_tests/fn/core/fn_wire_test.c` (те же
+- [X] T011 [P] Создать `unit_tests/lib_tests/fn/core/fn_wire_test.c` (те же
   инварианты CRC/LE на устройстве) и зарегистрировать набор в
   `unit_tests/test_index.c`
-- [ ] T012 [P] Создать `unit_tests/lib_tests/fn/core/fn_frame_test.c` (golden-
+- [X] T012 [P] Создать `unit_tests/lib_tests/fn/core/fn_frame_test.c` (golden-
   кадры, усечённые/битые ответы, `has_warning` без ошибки) с регистрацией в
   `unit_tests/test_index.c`
-- [ ] T013 [P] Создать `unit_tests/lib_tests/fn/core/fn_types_test.c` (валидность
+- [X] T013 [P] Создать `unit_tests/lib_tests/fn/core/fn_types_test.c` (валидность
   дат, тексты `fn_stage_text`/`fn_ffd_text`/`fn_doc_text`, `fn_warn_flags_unknown`)
   с регистрацией в `unit_tests/test_index.c`
-- [ ] T014 Атомарно перевести обмен на новый слой: удалить из
+- [X] T014 Атомарно перевести обмен на новый слой: удалить из
   `lib/fn/fn_helpers.c` и `lib/fn/fn_helpers.h` функции
   `two_uint8t_to_uint16t_LE/BE`, `uint16t_LE/BE_to_uint8t_bytes`,
   `byte_array_to_uint32t_LE`, `add_bytes_to_arr`, `prepend_data_to_array`,
@@ -146,17 +146,17 @@ golden-кадры — общий источник истины для host- и d
   `tests/host/test_wire_legacy.c`, `tests/host/shim/furi.h` и
   `unit_tests/lib_tests/fn/fn_helpers_test.c` вместе с регистрацией набора в
   `unit_tests/test_index.c` (иначе профиль `FN_TESTS=1` не соберётся)
-- [ ] T015 Создать `docs/byte-order.md` (версия R1): таблица «старое имя → что
+- [X] T015 Создать `docs/byte-order.md` (версия R1): таблица «старое имя → что
   реально делало → замена», правило «имена описывают провод», список критичных
   мест (LEN, CRC, `3Bh`, `3Dh` u32, `30h` № ФД), запрет «чинить по имени» без
   правки CRC и всех вызовов
 
 ### R2. Парсеры с флагами достоверности
 
-- [ ] T016 [P] Создать `lib/fn/proto/fn_commands.h`: коды только требуемых команд
+- [X] T016 [P] Создать `lib/fn/proto/fn_commands.h`: коды только требуемых команд
   (`30h`, `32h`, `33h`, `3Ah`, `3Bh`, `3Dh`, `10h`, `60h`+`16h`) с указанием
   разделов Протокола v1.2.05; никаких кодов в UI
-- [ ] T017 [P] Создать `lib/fn/proto/fn_status.h` и `lib/fn/proto/fn_status.c`:
+- [X] T017 [P] Создать `lib/fn/proto/fn_status.h` и `lib/fn/proto/fn_status.c`:
   `fn_parse_status_30h()` — `len >= 30`, `stage` (смещение 0), `current_doc`
   (1), `doc_data_received` (2), `session_open` (3), `warn_flags` (4),
   `last_doc_dt` 5–9, `serial[17]` 10–25 (копировать ровно 16 байт + `'\0'` в
@@ -164,98 +164,98 @@ golden-кадры — общий источник истины для host- и d
   1–31, час ≥24, минута ≥60) → `has_last_doc = false` **и**
   `has_last_doc_number = false`; также `fn_parse_session_10h()` — `len == 5`,
   `session_open`, `shift_number`/`receipt_number` LE
-- [ ] T018 [P] Создать `lib/fn/proto/fn_ident.h` и `lib/fn/proto/fn_ident.c`:
+- [X] T018 [P] Создать `lib/fn/proto/fn_ident.h` и `lib/fn/proto/fn_ident.c`:
   `fn_parse_ffd_3ah()` (`len == 2`, `current`/`max`), `fn_parse_fw_33h()`
   (`len == 17`, `version[17]` = 16 байт + `'\0'`, `mode_raw`, `is_mgm =
   (mode_raw == 0)` с комментарием «эвристика проекта»)
-- [ ] T019 [P] Создать `lib/fn/proto/fn_life.h` и `lib/fn/proto/fn_life.c`:
+- [X] T019 [P] Создать `lib/fn/proto/fn_life.h` и `lib/fn/proto/fn_life.c`:
   `fn_parse_end_date_32h()` (`len == 5`, `Date` 0–2, `year == 0` → «не
   активизирован», `reg_remaining`, `reg_done`), `fn_parse_end_days_3bh()`
   (`len == 2`, `days` LE, `days == 0` → `has_days = false`),
   `fn_parse_memory_3dh()` (`len == 8 || len == 9`; `five_year_documents`,
   `thirty_day_kb` (30 дней, **не** 30 лет), `marking_percent` только при
   `len >= 9` и `has_marking = true`; чтение `data[8]` при `len == 8` запрещено)
-- [ ] T020 Добавить агрегаты: `FnInfo` (`status`, `ffd`, `fw`, `session`,
+- [X] T020 Добавить агрегаты: `FnInfo` (`status`, `ffd`, `fw`, `session`,
   `has_ffd`, `has_fw`, `has_session`, `response_has_warning`) с
   `fn_info_alloc/free/reset` в `lib/fn/proto/fn_info.h` и
   `lib/fn/proto/fn_info.c`; `FnLifeInfo` (`date`, `days`, `memory`, `has_date`,
   `has_days`, `has_memory`) с `fn_life_info_alloc/free/reset` в
   `lib/fn/proto/fn_life.h` и `lib/fn/proto/fn_life.c`; `serial[0] = '\0'` при
   инициализации
-- [ ] T021 Написать `tests/host/test_parsers.c`: эталонные ответы каждого парсера,
+- [X] T021 Написать `tests/host/test_parsers.c`: эталонные ответы каждого парсера,
   `3Dh` 8 байт → `has_marking == false` (0 % не подставляется), 9 байт → 7 %,
   `3Bh` `68 01` → 360 дней, `3Bh` `00 00` → `has_days == false`, короткие
   буферы (`len` на 1 меньше требуемого) → `false` без изменения `*out`,
   `data == NULL` → `false`, `30h` с невалидной датой → оба `has_last_doc*`
   `false`
-- [ ] T022 [P] Создать `unit_tests/lib_tests/fn/proto/fn_status_test.c` (`30h`,
+- [X] T022 [P] Создать `unit_tests/lib_tests/fn/proto/fn_status_test.c` (`30h`,
   `10h`, предупреждение `0x80`) с регистрацией в `unit_tests/test_index.c`
-- [ ] T023 [P] Создать `unit_tests/lib_tests/fn/proto/fn_ident_test.c` (`3Ah`,
+- [X] T023 [P] Создать `unit_tests/lib_tests/fn/proto/fn_ident_test.c` (`3Ah`,
   `33h`, `is_mgm` для `mode_raw` 0 и 1) с регистрацией в
   `unit_tests/test_index.c`
-- [ ] T024 [P] Создать `unit_tests/lib_tests/fn/proto/fn_life_test.c` (`32h`,
+- [X] T024 [P] Создать `unit_tests/lib_tests/fn/proto/fn_life_test.c` (`32h`,
   `3Bh`, `3Dh` 8/9 байт) с регистрацией в `unit_tests/test_index.c`
 
 ### R3. Каталог кодов ответа
 
-- [ ] T025 Создать `lib/fn/core/fn_error.h` и `lib/fn/core/fn_error.c`: полный
+- [X] T025 Создать `lib/fn/core/fn_error.h` и `lib/fn/core/fn_error.c`: полный
   каталог `FNError` по `contracts/fn-api.md` §3 (все коды `response-codes.md`),
   `fn_error_is_known`, `fn_error_title` (`FNOk` → «Успешно»; для неизвестного —
   «Неизвестный код ответа ФН», никогда не `NULL`), `fn_error_hint` (`""`, если
   подсказки нет, никогда не `NULL`); тексты — статические строки без `malloc`,
   заголовок ≤ ~40 символов
-- [ ] T026 Написать `tests/host/test_error.c`: перебор всех значений `FNError` из
+- [X] T026 Написать `tests/host/test_error.c`: перебор всех значений `FNError` из
   заголовка — каждое известно и имеет непустой title; неизвестный код
   (`0x06`, `0x3F`) → `is_known == false` и title «Неизвестный код ответа ФН»;
   `fn_error_hint` для всех кодов не `NULL`
-- [ ] T027 [P] Создать `unit_tests/lib_tests/fn/core/fn_error_test.c` (полнота
+- [X] T027 [P] Создать `unit_tests/lib_tests/fn/core/fn_error_test.c` (полнота
   таблицы + неизвестный код на устройстве) с регистрацией в
   `unit_tests/test_index.c`
 
 ### R4. Транспорт
 
-- [ ] T028 Создать `lib/fn/transport/fn_uart.h` и `lib/fn/transport/fn_uart_i.h`:
+- [X] T028 Создать `lib/fn/transport/fn_uart.h` и `lib/fn/transport/fn_uart_i.h`:
   API `alloc/free/trx/cancel`, `FN_RX_READY_WAIT_MS 100`, состояние `busy` как
   `volatile bool`, один `FuriStreamBuffer` ёмкостью `FN_FRAME_MAX_LEN`, один
   one-shot `FuriTimer`, `FuriThreadPriorityNormal`; `fn_uart_alloc()` возвращает
   `NULL` при занятом порте (без `furi_check`-краша)
-- [ ] T029 Переписать `lib/fn/transport/fn_uart.c`: захват USART
+- [X] T029 Переписать `lib/fn/transport/fn_uart.c`: захват USART
   (`FuriHalSerialIdUsart` в release, `FuriHalSerialIdLpuart` под `FURI_DEBUG`),
   парные `expansion_disable/enable` и `furi_record_open(RECORD_EXPANSION)`,
   DMA-RX колбэк без блокировки (`furi_stream_buffer_send(..., 0)`, при
   переполнении — флаг ошибки приёма), `fn_uart_trx()` без `furi_delay_ms`-цикла
   (ожидание `rx_ready` через флаги с таймаутом 100 мс), `fn_uart_cancel()`
   (таймер стоп, буфер очищен, флаги сняты, состояние `Idle`)
-- [ ] T030 [P] Создать `unit_tests/lib_tests/fn/transport/fn_uart_test.c`: захват/
+- [X] T030 [P] Создать `unit_tests/lib_tests/fn/transport/fn_uart_test.c`: захват/
   освобождение порта парны; `cancel` возвращает `Idle` (следующий `trx`
   работает); обмен с реальным ФН печатает `[SKIP]` при отсутствии ответа;
   регистрация набора в `unit_tests/test_index.c`
 
 ### R5. Воркер и операции
 
-- [ ] T031 Создать `lib/fn/fn_worker.h` и `lib/fn/fn_worker_i.h`: `FnOpKind`
+- [X] T031 Создать `lib/fn/fn_worker.h` и `lib/fn/fn_worker_i.h`: `FnOpKind`
   (`FnOpDetect/ReadInfo/ReadLife/FlashMgm`), `FnOpStatus` (`Ok/NoResponse/
   FnRefused/BadFrame/Cancelled/Busy/InternalError`), `FnOpResult`
   (`id`, `kind`, `status`, `error`, `has_warning`), `FnTask` (`info`, `life` —
   владелец вызывающий), `FnWorkerCallback`, константы `FN_CMD_TIMEOUT_MS 300`,
   `FN_OP_DEADLINE_READ_MS 10000`, `FN_OP_DEADLINE_FLASH_MS 30000`,
   `FN_DETECT_ATTEMPTS 3`
-- [ ] T032 Реализовать `lib/fn/fn_worker.c`: один поток, одна активная операция,
+- [X] T032 Реализовать `lib/fn/fn_worker.c`: один поток, одна активная операция,
   монотонный `op_id`, дедлайн от `furi_get_tick()` в `fn_worker_start`,
   callback из потока воркера ровно один раз (включая `Cancelled`), проверка
   остатка дедлайна перед каждой командой (< `FN_CMD_TIMEOUT_MS` → `NoResponse`),
   `fn_worker_cancel()` без блокировки через `furi_thread_flags_set` +
   `fn_uart_cancel()`, игнор отмены для `FlashMgm`, после завершения — транспорт
   `Idle`, буферы пусты; логи `TAG` + `FURI_LOG_*`
-- [ ] T033 Реализовать `lib/fn/fn_ops.c`: сценарии `Detect` (`30h` → `3Ah` →
+- [X] T033 Реализовать `lib/fn/fn_ops.c`: сценарии `Detect` (`30h` → `3Ah` →
   `33h`), `ReadInfo` (`Detect` + `10h` только для этапа 2), `ReadLife`
   (`32h` → `3Dh` → `3Bh`, при любом этапе), `FlashMgm` (`60h`+`16h` — ровно одна
   отправка без повторов); отказ необязательной команды (`10h`, `3Bh`, `3Dh`) не
   отменяет операцию: `has_* = false`, статус `Ok`, код в `FURI_LOG_W`; `0x80` →
   `Ok` + `has_warning`
-- [ ] T034 Создать `lib/fn/fn.h` — umbrella-заголовок библиотеки (типы, парсеры,
+- [X] T034 Создать `lib/fn/fn.h` — umbrella-заголовок библиотеки (типы, парсеры,
   ошибки, воркер); потребитель — только `ui/` и `fn_test_app.c`
-- [ ] T035 [P] Создать `unit_tests/lib_tests/fn/worker/fn_worker_test.c`: `Detect`
+- [X] T035 [P] Создать `unit_tests/lib_tests/fn/worker/fn_worker_test.c`: `Detect`
   с ФН (иначе `[SKIP]`), `Detect` без ФН → `NoResponse`, `ReadInfo` дважды
   (растущий `id`, данные не «залипают»), `ReadInfo` → `cancel` через 100 мс →
   `Cancelled` ≤ 1 с и следующая операция `Ok`, 10 циклов «операция → отмена» +
@@ -270,7 +270,7 @@ golden-кадры — общий источник истины для host- и d
 коммитом с T077). Задача записана здесь как этап R5 плана, но затрагивает
 файлы старого UI, поэтому выполняется последней в Фазе 2.
 
-- [ ] T036 Выполняется ПОСЛЕ T037–T047 (базовый UI) и ОДНИМ изменением вместе
+- [X] T036 Выполняется ПОСЛЕ T037–T047 (базовый UI) и ОДНИМ изменением вместе
   с T077, иначе сборка между задачами красная. Удалить старый UI и старые
   модули библиотеки: `scenes/fn_test_scene*.c`, `scenes/fn_test_scene.h`,
   `scenes/fn_test_scene_config.h`, `views/fn_test_view_detect.{c,h}`,
@@ -287,37 +287,37 @@ golden-кадры — общий источник истины для host- и d
 
 ### Базовый UI (кириллица, меню, ожидание, текст)
 
-- [ ] T037 Создать `ui/fn_ui.h`: `FN_UI_MARGIN_X 2`, `FN_UI_HEADER_H 12`,
+- [X] T037 Создать `ui/fn_ui.h`: `FN_UI_MARGIN_X 2`, `FN_UI_HEADER_H 12`,
   `FN_UI_CONTENT_Y 13`, `FN_UI_CONTENT_H 50`, `FN_UI_LINE_H 9`,
   `FN_UI_SMALL_H 7`, `FN_UI_SECTION_GAP 3`, `FN_UI_SCROLLBAR_W 3`,
   `FN_UI_TEXT_W 120`, `FN_TEXT_MAX_SECTIONS 8`, `FN_TEXT_MAX_LINES`,
   `FN_TEXT_LINE_LEN 40`
-- [ ] T038 Создать `ui/fn_font.h` и `ui/fn_font.c` — сгенерированный u8g2-массив с
+- [X] T038 Создать `ui/fn_font.h` и `ui/fn_font.c` — сгенерированный u8g2-массив с
   кириллицей: ASCII `0x20–0x7E`, А–я, Ё/ё, `№`, `—`, `…`, `«»`; два размера
   (основной 9 px, мелкий 7 px), бюджет ≤ 6 КБ; точка входа
   `fn_font_primary()`/`fn_font_small()`; исходники в UTF-8, шрифт с
   Unicode-таблицей (иначе коды символов не совпадут с глифами)
-- [ ] T039 [P] Создать `ui/fn_strings.h` — единый каталог всех пользовательских
+- [X] T039 [P] Создать `ui/fn_strings.h` — единый каталог всех пользовательских
   строк (меню, поля, значения, ожидание, результат) по `contracts/ui.md` §9:
   `FN_STR_MENU_*`, `FN_STR_SN`, `FN_STR_STAGE`, `FN_STR_SESSION`, `FN_STR_DOC`,
   `FN_STR_FFD`, `FN_STR_FW`, `FN_STR_MGM`, `FN_STR_YES/NO/NO_DATA`,
   `FN_STR_DOC_NONE/DOC_DATA_RECEIVED/DOC_NO_DATA`, `FN_STR_WAIT_*`,
   `FN_STR_RESULT_OK`, `FN_STR_NO_RESPONSE`, `FN_STR_BAD_FRAME`,
   `FN_STR_NOT_MGM`, `FN_STR_UNKNOWN_CODE_FMT`
-- [ ] T040 [P] Создать `ui/views/fn_view_menu.h` и `ui/views/fn_view_menu.c`:
+- [X] T040 [P] Создать `ui/views/fn_view_menu.h` и `ui/views/fn_view_menu.c`:
   `fn_view_menu_alloc/free/get_view/set_callback/set_selected/get_selected`,
   собственная отрисовка на `Canvas` с `fn_font`, 5 пунктов в порядке FR-001
   (Информация об ФН, Информация о фазе жизни ФН, Очистка МГМ, Распиновка,
   О приложении), выбранный индекс сохраняется; callback только отправляет
   custom event (без `scene_manager_*`)
-- [ ] T041 [P] Создать `ui/views/fn_view_wait.h` и `ui/views/fn_view_wait.c`:
+- [X] T041 [P] Создать `ui/views/fn_view_wait.h` и `ui/views/fn_view_wait.c`:
   `fn_view_wait_set(view, mode, title, subtitle, cancelable)` для
   `FnWaitModeDetect/Read/Flash`; анимация `A_FNLooking_64x64` (существующий ассет
   `icons/FNLooking_64x64/`) — `view_tie_icon_animation` в `alloc`,
   `icon_animation_start` в enter-callback, `icon_animation_stop` в exit-callback,
   `icon_animation_free` в `free`; повторный `set` не перезапускает анимацию;
   ни одного `furi_delay_ms` в draw/enter/exit
-- [ ] T037a [P] Создать `ui/fn_text_model.h` — только данные, без GUI:
+- [X] T037a [P] Создать `ui/fn_text_model.h` — только данные, без GUI:
   `FnTextLine { char text[FN_TEXT_LINE_LEN]; FnTextStyle emphasis; }`,
   `FnTextSection { const char* title; FnTextLine lines[FN_TEXT_MAX_LINES];
   uint8_t line_count; }`, `FnTextModel { FnTextSection sections[FN_TEXT_MAX_SECTIONS];
@@ -325,7 +325,7 @@ golden-кадры — общий источник истины для host- и d
   константы `FN_TEXT_*` — из `ui/fn_ui.h`; заголовок не включает `gui/`,
   `fn_view_text.h` и `furi` — это условие host-тестируемости (T054/T059) и
   `check_layers.sh` (T004)
-- [ ] T042 [P] Создать `ui/views/fn_view_text.h` и `ui/views/fn_view_text.c`:
+- [X] T042 [P] Создать `ui/views/fn_view_text.h` и `ui/views/fn_view_text.c`:
   `clear/add_section/add_line(style, fmt, …)/commit` — вспомогательный API для
   экранов результата/справки; `fn_view_text_set_model(view, const FnTextModel*)`
   — рендер готовой модели (перенос по словам для `add_line` выполняется в
@@ -336,28 +336,28 @@ golden-кадры — общий источник истины для host- и d
   `content_height > FN_UI_CONTENT_H`; `commit`/`set_model` сбрасывают
   `scroll_y = 0`; `malloc` только в `alloc`; `ui/fn_format.c` методы view НЕ
   вызывает (только заполняет `FnTextModel`)
-- [ ] T043 Написать `tests/host/test_strings.c`: все строки из
+- [X] T043 Написать `tests/host/test_strings.c`: все строки из
   `ui/fn_strings.h` непустые; в пользовательских подписях нет латиницы, кроме
   разрешённого списка (SN, ФФД, URL, «Код: 0xNN»); формат
   `FN_STR_UNKNOWN_CODE_FMT` даёт «Неизвестный код ответа ФН: 0xNN»
-- [ ] T044 Переписать `fn_test_app_i.h` и `fn_test_app.h`: `FNApp` содержит
+- [X] T044 Переписать `fn_test_app_i.h` и `fn_test_app.h`: `FNApp` содержит
   `Gui*`, `NotificationApp*`, `ViewDispatcher*`, `SceneManager*`, `FNWorker*`,
   указатели на 4 view, `FnInfo*`, `FnLifeInfo*`, `FnTask`, `FnOpResult op_result`,
   `uint32_t op_id`; `enum FNAppView` — ровно `FNAppViewMenu`, `FNAppViewWait`,
   `FNAppViewText`, `FNAppViewConfirm`; удалить мёртвые `FNAppMode` и лишние
   значения enum
-- [ ] T045 Переписать `fn_test_app.c`: `fn_test_app_alloc` открывает только
+- [X] T045 Переписать `fn_test_app.c`: `fn_test_app_alloc` открывает только
   `RECORD_GUI` и `RECORD_NOTIFICATION` (без `RECORD_DIALOGS`), создаёт
   `view_dispatcher` (`ViewDispatcherTypeFullscreen`), `SceneManager`, `FNWorker`,
   view и `fn_info_alloc`/`fn_life_info_alloc`; `fn_test_app_free` освобождает в
   обратном порядке, вызывает `fn_worker_free` только при `!busy`; ошибка
   инициализации view/воркера — русское сообщение и выход без краша; никаких
   действий в GUI-потоке с блокировкой
-- [ ] T046 Создать `ui/scenes/fn_scene.h`, `ui/scenes/fn_scene.c` и
+- [X] T046 Создать `ui/scenes/fn_scene.h`, `ui/scenes/fn_scene.c` и
   `ui/scenes/fn_scene_config.h`: декларативная регистрация сцен через `ADD_SCENE`
   (`Start`, `Wait`, `Info`, `Life`, `Confirm`, `Result`, `Wiring`, `About`),
   порядок и обработчики `on_enter/on_exit/on_event`
-- [ ] T047 Создать `ui/scenes/fn_scene_start.c`: главное меню через
+- [X] T047 Создать `ui/scenes/fn_scene_start.c`: главное меню через
   `FnMenuView`, 5 пунктов, сохранение выбранного индекса, Back — выход из
   приложения; выбор пунктов 0–4 отправляет custom event, обработка переходов —
   в задачах соответствующих историй

@@ -18,10 +18,9 @@ HOST_DIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 ROOT := $(abspath $(HOST_DIR)/../..)
 BUILD_DIR := $(HOST_DIR)/build
 
-# shim — заглушка <furi.h> только для теста-«ловушки» R0 (удаляется в R1).
+# Только чистые слои: без путей SDK (contracts/module-boundaries.md §1).
 INCLUDES := \
 	-I$(HOST_DIR) \
-	-I$(HOST_DIR)/shim \
 	-I$(ROOT)/lib/fn/core \
 	-I$(ROOT)/lib/fn/proto \
 	-I$(ROOT)/ui
@@ -31,10 +30,6 @@ LIB_SRC := \
 	$(wildcard $(ROOT)/lib/fn/core/*.c) \
 	$(wildcard $(ROOT)/lib/fn/proto/*.c) \
 	$(wildcard $(ROOT)/ui/fn_format.c)
-
-# R0: старые helper'ы нужны только тесту-ловушке; после R1 файла нет.
-LEGACY_SRC := $(wildcard $(ROOT)/lib/fn/fn_helpers.c)
-LEGACY_INCLUDES := $(if $(LEGACY_SRC),-I$(ROOT)/lib/fn)
 
 # Один бинарник на файл test_*.c — тесты не мешают друг другу.
 TEST_SRC := $(sort $(wildcard $(HOST_DIR)/test_*.c))
@@ -49,12 +44,12 @@ $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
 # Любой провал компиляции или проверки — ненулевой код возврата.
-$(BUILD_DIR)/%: $(HOST_DIR)/%.c $(LIB_SRC) $(LEGACY_SRC) | $(BUILD_DIR)
-	$(CC) $(CFLAGS) $(INCLUDES) $(LEGACY_INCLUDES) $< $(LIB_SRC) $(LEGACY_SRC) -o $@
+$(BUILD_DIR)/%: $(HOST_DIR)/%.c $(LIB_SRC) | $(BUILD_DIR)
+	$(CC) $(CFLAGS) $(INCLUDES) $< $(LIB_SRC) -o $@
 
-$(BUILD_DIR)/%-asan: $(HOST_DIR)/%.c $(LIB_SRC) $(LEGACY_SRC) | $(BUILD_DIR)
+$(BUILD_DIR)/%-asan: $(HOST_DIR)/%.c $(LIB_SRC) | $(BUILD_DIR)
 	$(CC) $(CFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer \
-		$(INCLUDES) $(LEGACY_INCLUDES) $< $(LIB_SRC) $(LEGACY_SRC) -o $@
+		$(INCLUDES) $< $(LIB_SRC) -o $@
 
 test: $(TEST_BINS)
 	@failed=0; \
