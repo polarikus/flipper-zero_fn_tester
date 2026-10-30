@@ -1,3 +1,10 @@
+## v 0.6.2
+
+- The catalog description now explains what a fiscal drive is, which hardware
+  and wiring is needed and how to control the app.
+- The short description is taken from application.fam only, so the catalog
+  bundle is built without warnings.
+
 ## v 0.6.1
 
 - Fix the catalog changelog: inline code was removed, because the Flipper
