@@ -42,6 +42,9 @@ void fn_scene_wait_on_enter(void* context) {
     const FnWaitMode mode = fn_scene_wait_mode(kind);
     const bool cancelable = (kind != FnOpFlashMgm);
 
+    /* Данные прошлой операции фазы жизни не должны попасть на новый экран. */
+    if(kind == FnOpReadLife) fn_life_info_reset(app->fn_life_info);
+
     const char* title = NULL;
     const char* subtitle = NULL;
     fn_scene_wait_texts(mode, &title, &subtitle);
@@ -66,11 +69,19 @@ void fn_scene_wait_on_enter(void* context) {
     app->op_id = fn_worker_get_op_id(app->worker);
 }
 
-/** Переход по результату операции US1: успех — данные, иначе — результат. */
+/** Переход по результату операции: успех — данные (US1/US2), иначе — результат. */
 static void fn_scene_wait_handle_result(FNApp* app) {
-    if(app->op_result.status == FnOpStatusOk && app->op_result.kind == FnOpReadInfo) {
-        scene_manager_next_scene(app->scene_manager, FNAppSceneInfo);
-        return;
+    if(app->op_result.status == FnOpStatusOk) {
+        switch(app->op_result.kind) {
+        case FnOpReadInfo:
+            scene_manager_next_scene(app->scene_manager, FNAppSceneInfo);
+            return;
+        case FnOpReadLife:
+            scene_manager_next_scene(app->scene_manager, FNAppSceneLife);
+            return;
+        default:
+            break;
+        }
     }
 
     scene_manager_next_scene(app->scene_manager, FNAppSceneResult);

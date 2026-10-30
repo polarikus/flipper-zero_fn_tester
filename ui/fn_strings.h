@@ -32,6 +32,11 @@ extern "C" {
 #define FN_STR_SECTION_FFD       "ФФД (3Ah)"
 #define FN_STR_SECTION_FW        "ПО ФН (33h)"
 
+/* Заголовки секций экрана «Информация о фазе жизни ФН» (contracts/ui.md §8.2). */
+#define FN_STR_SECTION_LIFE_DATE "Срок действия (32h)"
+#define FN_STR_SECTION_LIFE_DAYS "Остаток срока (3Bh)"
+#define FN_STR_SECTION_MEMORY    "Ресурс памяти (3Dh)"
+
 /* Подписи полей. */
 #define FN_STR_SN             "Серийный номер"
 #define FN_STR_STAGE          "Этап"
@@ -52,6 +57,17 @@ extern "C" {
 #define FN_STR_WARNINGS       "Предупреждения"
 #define FN_STR_OTHER_WARNINGS "Прочие предупреждения: 0x%02X"
 
+/* Поля экрана «Информация о фазе жизни ФН» (contracts/ui.md §8.2). */
+#define FN_STR_LIFE_END_DATE      "Дата окончания"
+#define FN_STR_LIFE_NOT_ACTIVATED "не активизирован"
+#define FN_STR_REG_DONE           "Выполнено регистраций"
+#define FN_STR_REG_LEFT           "Осталось регистраций"
+#define FN_STR_MEM_FIVE_YEAR      "5-летнее хранение"
+#define FN_STR_MEM_THIRTY_DAY     "30-дневное хранение"
+#define FN_STR_DOCUMENTS          "документов"
+#define FN_STR_KB                 "КБ"
+#define FN_STR_MARKING_FMT        "Область уведомлений о маркировке: %u %%"
+
 /* Значения. */
 #define FN_STR_YES               "да"
 #define FN_STR_NO                "нет"
@@ -64,6 +80,14 @@ extern "C" {
 #define FN_STR_INDENT_FMT        "  %s"
 #define FN_STR_DOC_UNKNOWN_FMT   "  Неизвестный документ (0x%02X)"
 #define FN_STR_DATE_FMT          "%02u.%02u.%02u %02u:%02u"
+#define FN_STR_SHORT_DATE_FMT    "%02u.%02u.%02u"
+/* Остаток срока: «N дней» с согласованием по числу (FR-011). */
+#define FN_STR_DAYS_FMT          "%u %s"
+#define FN_STR_DAY_ONE           "день"
+#define FN_STR_DAY_FEW           "дня"
+#define FN_STR_DAY_MANY          "дней"
+#define FN_STR_FIVE_YEAR_FMT     "%lu %s"
+#define FN_STR_THIRTY_DAY_FMT    "%lu %s"
 
 /* Ожидание. */
 #define FN_STR_WAIT_DETECT      "Поиск ФН"

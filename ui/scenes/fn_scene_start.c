@@ -27,6 +27,13 @@ static void fn_scene_start_start_info(FNApp* app) {
     scene_manager_next_scene(app->scene_manager, FNAppSceneWait);
 }
 
+static void fn_scene_start_start_life(FNApp* app) {
+    fn_life_info_reset(app->fn_life_info);
+    memset(&app->op_result, 0, sizeof(app->op_result));
+    app->pending_op = FnOpReadLife;
+    scene_manager_next_scene(app->scene_manager, FNAppSceneWait);
+}
+
 bool fn_scene_start_on_event(void* context, SceneManagerEvent event) {
     furi_assert(context);
     FNApp* app = context;
@@ -37,8 +44,11 @@ bool fn_scene_start_on_event(void* context, SceneManagerEvent event) {
     case FnMenuItemFnInfo:
         fn_scene_start_start_info(app);
         return true;
+    case FnMenuItemLifeInfo:
+        fn_scene_start_start_life(app);
+        return true;
     default:
-        /* Остальные пункты подключаются в задачах US2-US5. */
+        /* Остальные пункты подключаются в задачах US3-US5. */
         return false;
     }
 }

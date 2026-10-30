@@ -8,6 +8,8 @@
 
 #define FN_FORMAT_NUMBER_LEN 24
 #define FN_FORMAT_DATE_LEN   24
+/* Значения с единицей измерения: «5000 документов», «8192 КБ», «360 дней». */
+#define FN_FORMAT_VALUE_LEN  FN_TEXT_LINE_LEN
 /* Буфер под длинные значения: максимум исходной строки до переноса. */
 #define FN_FORMAT_TEXT_BUF   (FN_TEXT_LINE_LEN * 2)
 
@@ -246,4 +248,122 @@ void fn_format_info(const FnInfo* info, FnTextModel* model) {
     format_section_warnings(model, &info->status);
     format_section_ffd(model, info);
     format_section_fw(model, info);
+}
+
+/** Согласование слова «день» с числом: 1 день, 2 дня, 360 дней. */
+static const char* format_days_word(unsigned days) {
+    const unsigned mod100 = days % 100;
+    if(mod100 >= 11 && mod100 <= 14) return FN_STR_DAY_MANY;
+
+    switch(days % 10) {
+    case 1:
+        return FN_STR_DAY_ONE;
+    case 2:
+    case 3:
+    case 4:
+        return FN_STR_DAY_FEW;
+    default:
+        return FN_STR_DAY_MANY;
+    }
+}
+
+/** «Срок действия (32h)»: дата окончания и счетчики регистраций (FR-010). */
+static void format_section_life_date(FnTextModel* model, const FnLifeInfo* life) {
+    FnTextSection* section = format_section(model, FN_STR_SECTION_LIFE_DATE);
+    if(!section) return;
+
+    char value[FN_FORMAT_NUMBER_LEN];
+
+    if(!life->has_date) {
+        format_kv(section, FN_STR_LIFE_END_DATE, FN_STR_NO_DATA);
+        format_kv(section, FN_STR_REG_DONE, FN_STR_NO_DATA);
+        format_kv(section, FN_STR_REG_LEFT, FN_STR_NO_DATA);
+        return;
+    }
+
+    /* Нулевая дата — ФН ещё не активизирован, а не «нет данных». */
+    if(life->date.end_date.year == 0) {
+        format_kv(section, FN_STR_LIFE_END_DATE, FN_STR_LIFE_NOT_ACTIVATED);
+    } else {
+        const FnDate* date = &life->date.end_date;
+        snprintf(
+            value,
+            sizeof(value),
+            FN_STR_SHORT_DATE_FMT,
+            (unsigned)date->day,
+            (unsigned)date->month,
+            (unsigned)date->year);
+        format_kv(section, FN_STR_LIFE_END_DATE, value);
+    }
+
+    snprintf(value, sizeof(value), "%u", (unsigned)life->date.reg_done);
+    format_kv(section, FN_STR_REG_DONE, value);
+
+    snprintf(value, sizeof(value), "%u", (unsigned)life->date.reg_remaining);
+    format_kv(section, FN_STR_REG_LEFT, value);
+}
+
+/** «Остаток срока (3Bh)»: показывается всегда, нулевой остаток — «нет данных». */
+static void format_section_life_days(FnTextModel* model, const FnLifeInfo* life) {
+    FnTextSection* section = format_section(model, FN_STR_SECTION_LIFE_DAYS);
+    if(!section) return;
+
+    if(!life->has_days || !life->days.has_days) {
+        format_line(section, FnTextStyleNormal, "%s", FN_STR_NO_DATA);
+        return;
+    }
+
+    char value[FN_FORMAT_VALUE_LEN];
+    snprintf(
+        value,
+        sizeof(value),
+        FN_STR_DAYS_FMT,
+        (unsigned)life->days.days,
+        format_days_word(life->days.days));
+    format_line(section, FnTextStyleNormal, "%s", value);
+}
+
+/** «Ресурс памяти (3Dh)»: 5-летний, 30-дневный и (при наличии) процент маркировки. */
+static void format_section_memory(FnTextModel* model, const FnLifeInfo* life) {
+    FnTextSection* section = format_section(model, FN_STR_SECTION_MEMORY);
+    if(!section) return;
+
+    if(!life->has_memory) {
+        format_line(section, FnTextStyleNormal, "%s", FN_STR_NO_DATA);
+        return;
+    }
+
+    char value[FN_FORMAT_VALUE_LEN];
+    snprintf(
+        value,
+        sizeof(value),
+        FN_STR_FIVE_YEAR_FMT,
+        (unsigned long)life->memory.five_year_documents,
+        FN_STR_DOCUMENTS);
+    format_kv(section, FN_STR_MEM_FIVE_YEAR, value);
+
+    snprintf(
+        value,
+        sizeof(value),
+        FN_STR_THIRTY_DAY_FMT,
+        (unsigned long)life->memory.thirty_day_kb,
+        FN_STR_KB);
+    format_kv(section, FN_STR_MEM_THIRTY_DAY, value);
+
+    /* Девятого байта нет — строки о маркировке нет вовсе (FR-028). */
+    if(life->memory.has_marking) {
+        format_line(
+            section, FnTextStyleNormal, FN_STR_MARKING_FMT, (unsigned)life->memory.marking_percent);
+    }
+}
+
+void fn_format_life(const FnLifeInfo* life, FnTextModel* model) {
+    if(!life || !model) return;
+
+    memset(model, 0, sizeof(*model));
+
+    /* Блоки 32h/3Bh/3Dh выводятся всегда, независимо от ФФД и этапа. */
+    format_section_life_date(model, life);
+    format_section_life_days(model, life);
+    format_section_memory(model, life);
 }
