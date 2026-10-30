@@ -113,13 +113,18 @@ extern "C" {
 #define FN_STR_CONFIRM_ACCEPT "Очистить"
 #define FN_STR_CONFIRM_CANCEL "Отмена"
 
-/* О приложении. */
-#define FN_STR_ABOUT_APP         "Тестер фискальных накопителей"
-#define FN_STR_ABOUT_AUTHOR      "Автор: Игорь Данилов"
-#define FN_STR_ABOUT_VERSION_FMT "Версия: %s"
-#define FN_STR_ABOUT_URL         "github.com/polarikus/flipper-zero_fn_tester"
-#define FN_STR_ABOUT_DESCRIPTION \
-    "Показывает сведения об ФН, фазу жизни, предупреждения и позволяет сбросить МГМ."
+/* О приложении. Каждая строка — не длиннее ~21 символа, чтобы помещаться
+ * в ширину 128x64 без разрыва слова; одна строка модели не более
+ * FN_TEXT_LINE_LEN (72) байт UTF-8, иначе vsnprintf оборвёт кириллицу (FR-017). */
+#define FN_STR_ABOUT_APP           "Тестер фискальных накопителей"
+#define FN_STR_ABOUT_AUTHOR        "Автор: Игорь Данилов"
+#define FN_STR_ABOUT_VERSION_FMT   "Версия: %s"
+#define FN_STR_ABOUT_URL_1         "github.com/polarikus/"
+#define FN_STR_ABOUT_URL_2         "flipper-zero_fn_tester"
+#define FN_STR_ABOUT_DESCRIPTION_1 "Показывает сведения"
+#define FN_STR_ABOUT_DESCRIPTION_2 "об ФН и фазе жизни,"
+#define FN_STR_ABOUT_DESCRIPTION_3 "предупреждения и"
+#define FN_STR_ABOUT_DESCRIPTION_4 "сброс МГМ."
 
 #ifdef __cplusplus
 }

@@ -67,8 +67,15 @@ bool fn_scene_start_on_event(void* context, SceneManagerEvent event) {
     case FnMenuItemFlashMgm:
         fn_scene_start_start_flash(app);
         return true;
+    case FnMenuItemWiring:
+        /* Справочный экран: операций с ФН не запускает (FR-016). */
+        scene_manager_next_scene(app->scene_manager, FNAppSceneWiring);
+        return true;
+    case FnMenuItemAbout:
+        /* Справочный экран: операций с ФН не запускает (FR-017). */
+        scene_manager_next_scene(app->scene_manager, FNAppSceneAbout);
+        return true;
     default:
-        /* Пункты «Распиновка» и «О приложении» подключаются в US5. */
         return false;
     }
 }

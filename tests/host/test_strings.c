@@ -1,5 +1,6 @@
 // Host-тесты каталога пользовательских строк (T043).
 #include "fn_strings.h"
+#include "fn_ui.h"
 #include "test_common.h"
 
 #include <ctype.h>
@@ -100,8 +101,15 @@ static const StringEntry strings[] = {
     {"CONFIRM_CANCEL", FN_STR_CONFIRM_CANCEL, false},
     {"ABOUT_APP", FN_STR_ABOUT_APP, false},
     {"ABOUT_AUTHOR", FN_STR_ABOUT_AUTHOR, false},
-    {"ABOUT_URL", FN_STR_ABOUT_URL, true},
-    {"ABOUT_DESCRIPTION", FN_STR_ABOUT_DESCRIPTION, false},
+    // "Версия: %s" — спецификатор формата содержит латинскую букву.
+    {"ABOUT_VERSION_FMT", FN_STR_ABOUT_VERSION_FMT, true},
+    {"ABOUT_URL_1", FN_STR_ABOUT_URL_1, true},
+    {"ABOUT_URL_2", FN_STR_ABOUT_URL_2, true},
+    // Описание разбито на строки модели: каждая должна помещаться в FN_TEXT_LINE_LEN.
+    {"ABOUT_DESCRIPTION_1", FN_STR_ABOUT_DESCRIPTION_1, false},
+    {"ABOUT_DESCRIPTION_2", FN_STR_ABOUT_DESCRIPTION_2, false},
+    {"ABOUT_DESCRIPTION_3", FN_STR_ABOUT_DESCRIPTION_3, false},
+    {"ABOUT_DESCRIPTION_4", FN_STR_ABOUT_DESCRIPTION_4, false},
 };
 
 static bool has_latin(const char* text) {
@@ -136,8 +144,38 @@ static void test_format(void) {
     TEST_CHECK(strcmp(buffer, "Код: 0x03") == 0);
 }
 
+/**
+ * Строки экрана «О приложении» (FR-017) обязаны целиком помещаться в строку
+ * модели: vsnprintf обрезает по байтам и может разорвать кириллический символ.
+ */
+static void test_about_lines(void) {
+    static const char* const lines[] = {
+        FN_STR_ABOUT_APP,
+        FN_STR_ABOUT_AUTHOR,
+        FN_STR_ABOUT_URL_1,
+        FN_STR_ABOUT_URL_2,
+        FN_STR_ABOUT_DESCRIPTION_1,
+        FN_STR_ABOUT_DESCRIPTION_2,
+        FN_STR_ABOUT_DESCRIPTION_3,
+        FN_STR_ABOUT_DESCRIPTION_4,
+    };
+
+    for(size_t i = 0; i < sizeof(lines) / sizeof(lines[0]); ++i) {
+        const size_t len = strlen(lines[i]);
+        if(len >= FN_TEXT_LINE_LEN) {
+            fprintf(stderr, "FAIL строка «О приложении» длиннее модели: %s\n", lines[i]);
+        }
+        TEST_CHECK(len < FN_TEXT_LINE_LEN);
+    }
+
+    char buffer[64];
+    snprintf(buffer, sizeof(buffer), FN_STR_ABOUT_VERSION_FMT, "0.6");
+    TEST_CHECK(strcmp(buffer, "Версия: 0.6") == 0);
+}
+
 int main(void) {
     test_strings();
     test_format();
+    test_about_lines();
     return TEST_SUMMARY();
 }
