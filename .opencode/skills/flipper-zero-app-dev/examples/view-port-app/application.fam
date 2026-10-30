@@ -1,0 +1,10 @@
+App(
+    appid="view_port_app",
+    name="ViewPort Demo",
+    apptype=FlipperAppType.EXTERNAL,
+    entry_point="view_port_app",
+    requires=["gui"],
+    stack_size=1 * 1024,
+    fap_version="1.0",
+    fap_category="Examples",
+)

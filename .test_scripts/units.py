@@ -13,8 +13,14 @@ def main():
         level=logging.INFO,
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+    if len(sys.argv) < 2:
+        print("Usage: units.py <flipper_name> [test_suite]", file=sys.stderr)
+        print("Example: units.py Rogour fn_helpers", file=sys.stderr)
+        sys.exit(2)
+
     logging.info("Trying to run units on flipper")
     flp_serial = flp_serial_by_name(sys.argv[1])
+    test_suite = sys.argv[2] if len(sys.argv) > 2 else None
 
     if flp_serial == "":
         logging.error("Flipper not found!")
@@ -29,11 +35,20 @@ def main():
         flipper.timeout = 300
 
         flipper.read_until(b">: ").decode("utf-8")
-        flipper.write(b"fn_test\r")
+        cmd = "fn_test" if test_suite is None else f"fn_test {test_suite}"
+        flipper.write(cmd.encode() + b"\r")
         data = flipper.read_until(b">: ").decode("utf-8")
 
-        if "`fn_test` command not found," in data:
-            logging.error(f"Failed run tests, fn_test app is not running in flipper!")
+        # Сообщение CLI менялось между версиями прошивки:
+        # старые: "`fn_test` command not found, ...", новые: "could not find command `fn_test`".
+        clean_data = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", data)
+        if "fn_test" in clean_data and (
+            "command not found" in clean_data or "could not find command" in clean_data
+        ):
+            logging.error(
+                "Failed run tests: fn_test command is not registered. "
+                "Build the app with FN_TESTS=1 and run it on Flipper."
+            )
             sys.exit(1)
 
         lines = data.split("\r\n")
@@ -67,7 +82,10 @@ def main():
                 status = re.match(status_pattern, line)
 
         if None in (tests, time, leak, status):
-            logging.error(f"Failed to parse output: {leak} {time} {leak} {status}")
+            logging.error(
+                f"Failed to parse output: tests={tests} time={time} "
+                f"leak={leak} status={status}"
+            )
             sys.exit(1)
 
         leak = int(re.findall(r"[- ]\d+", leak.group(0))[0])
