@@ -14,7 +14,8 @@
 
 Внешнее приложение (FAP) для **Flipper Zero**: тестер фискальных накопителей (ФН),
 применяемых в кассовой технике (Россия). Приложение подключается к ФН по UART,
-отправляет команды протокола ФН и показывает русским текстом:
+отправляет команды протокола ФН и показывает понятным текстом (английский по
+умолчанию, русский — по выбору пользователя):
 
 - информацию о ФН (серийный номер, этап жизни, состояние смены, документ для
   ОФД, версия/тип ФФД, версия ПО, МГМ или боевой ФН, флаги предупреждений);
@@ -45,13 +46,15 @@ flipper-zero_fn_tester/
 ├── fn_test_app.c              # entry point, alloc/free, ViewDispatcher
 ├── fn_test_app_i.h            # структура FNApp, enum'ы view и custom-событий
 ├── fn_test_app.h              # публичный typedef FNApp
+├── fn_settings.c/.h           # язык интерфейса в /data/fn_test/settings.txt
 ├── lib/fn/                    # приватная библиотека (не знает про UI)
 │   ├── fn.h                   # umbrella-заголовок для ui/ и fn_test_app.c
 │   ├── core/                  # ЧИСТОЕ ядро, без furi (host-тестируемое)
+│   │   ├── fn_lang.h          # FnLang: английский (по умолчанию) и русский
 │   │   ├── fn_types.h/.c      # Date/DateTime, FnStage, FnFfd, FnDocCode, FnWarnFlags
 │   │   ├── fn_wire.h/.c       # u16le/u32le get/put, crc16_ccitt (число, без swap)
 │   │   ├── fn_frame.h/.c      # сборка/разбор кадра, FnFrameStatus
-│   │   └── fn_error.h/.c      # каталог кодов ответа + русские title/hint
+│   │   └── fn_error.h/.c      # каталог кодов ответа + title/hint (EN/RU)
 │   ├── proto/                 # коды команд и парсеры ответов (без UART/GUI)
 │   │   ├── fn_commands.h      # коды команд 30h/32h/33h/3Ah/3Bh/3Dh/10h/60h
 │   │   ├── fn_status.h/.c     # 30h, 10h (+ FnInfo)
@@ -66,10 +69,10 @@ flipper-zero_fn_tester/
 │   ├── fn_ui.h                # константы вёрстки 128×64 и лимиты модели
 │   ├── fn_font.h/.c           # сгенерированный u8g2-шрифт с кириллицей
 │   ├── fn_draw.h/.c           # отрисовка UTF-8 строк с переносом по словам
-│   ├── fn_strings.h           # ВСЕ пользовательские строки (единый каталог)
+│   ├── fn_strings.h/.c        # ВСЕ пользовательские строки (EN/RU, fn_str)
 │   ├── fn_text_model.h        # FnTextModel/секции/строки — только данные
 │   ├── fn_format.h/.c         # заполнение модели экранов (host-тестируемо)
-│   ├── views/                 # fn_view_menu / fn_view_wait / fn_view_text / fn_view_confirm
+│   ├── views/                 # fn_view_menu / fn_view_wait / fn_view_text / fn_view_confirm / fn_view_language
 │   └── scenes/                # fn_scene.c/.h, fn_scene_config.h, fn_scene_*.c
 ├── unit_tests/                # on-device minunit (профиль FN_TESTS=1)
 │   └── lib_tests/fn/{core,proto,transport,worker}/
@@ -120,8 +123,9 @@ ui/            сцены и view; знают только fn_worker API и FnTe
   (`core/fn_error.*`), показ экранов — `ui/fn_format.c` → `FnTextModel`.
 - Новая сцена — `ui/scenes/fn_scene_config.h` (`ADD_SCENE`); новое view —
   `enum FNAppView` (`fn_test_app_i.h`) и `view_dispatcher_add_view`.
-- Все пользовательские строки — только в `ui/fn_strings.h`; в сценах и view
-  литералов пользовательского текста нет.
+- Все пользовательские строки — только в `ui/fn_strings.c` (выбор через
+  `fn_str(lang, FnStrId)`); в сценах и view литералов пользовательского текста
+  нет. Язык хранится в `FNApp.lang` и сохраняется `fn_settings.c`.
 
 ### ⚠️ Ловушка байтового порядка
 
@@ -179,8 +183,9 @@ make -C tests/host check-layers # границы слоёв (grep-правила
 make -C tests/host clean
 ```
 
-- Компилируются `lib/fn/core/*.c`, `lib/fn/proto/*.c` и `ui/fn_format.c`;
-  включать `ui/views`, `ui/scenes`, `ui/fn_font.*` и любые пути SDK запрещено.
+- Компилируются `lib/fn/core/*.c`, `lib/fn/proto/*.c`, `ui/fn_format.c` и
+  `ui/fn_strings.c`; включать `ui/views`, `ui/scenes`, `ui/fn_font.*` и любые
+  пути SDK запрещено.
 - `tests/host/golden_frames.h` — единственный источник истины для кадров
   Протокола (используется и в on-device тестах).
 - `tests/host/check_layers.sh`: в `core/` и `proto/` нет `furi`/`gui/`;
@@ -248,8 +253,8 @@ CLI `fn_test` и разбирает `Failed tests: N`, `Consumed: N ms`, `Leaked
   без теста на golden-кадр запрещено (`docs/byte-order.md` §5).
 - Коды команд (`FN_CMD*`) и поля протокола — только в `lib/fn/proto/` и
   `lib/fn/fn_ops.c`; в `ui/` их быть не должно.
-- Пользовательские строки — только в `ui/fn_strings.h`. Основной шрифт без
-  `Ё/ё`, `№`, `«»` — писать «ждет», «Отчет», без тире.
+- Пользовательские строки — только в `ui/fn_strings.c` (EN/RU). Основной шрифт
+  без `Ё/ё`, `№`, `«»` — писать «ждет», «Отчет», без тире.
 - Изменяющая команда (`60h`) требует preflight-проверки «МГМ/боевой» и явного
   подтверждения; отправляется ровно один раз.
 - Не ломать release-сборку: тестовый код держать под `FN_TESTS`/`FURI_DEBUG`,

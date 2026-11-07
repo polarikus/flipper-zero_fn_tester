@@ -54,7 +54,7 @@ static FnOpResult make_result(FnOpKind kind, FnOpStatus status, FNError error) {
 static void test_flash_success(void) {
     const FnOpResult result = make_result(FnOpFlashMgm, FnOpStatusOk, FNOk);
     FnTextModel model;
-    fn_format_result(&result, FnResultReasonOperation, &model);
+    fn_format_result(&result, FnResultReasonOperation, &model, FnLangRu);
 
     TEST_CHECK_EQ_U16(model.section_count, 1);
     expect_line(&model, FN_STR_RESULT_OK);
@@ -64,7 +64,7 @@ static void test_flash_not_mgm(void) {
     /* Preflight: команда не отправлялась, показываем недоступность (FR-024). */
     const FnOpResult result = make_result(FnOpDetect, FnOpStatusOk, FNOk);
     FnTextModel model;
-    fn_format_result(&result, FnResultReasonNotMgm, &model);
+    fn_format_result(&result, FnResultReasonNotMgm, &model, FnLangRu);
 
     expect_line(&model, FN_STR_NOT_MGM);
 }
@@ -72,7 +72,7 @@ static void test_flash_not_mgm(void) {
 static void test_refused_known_code(void) {
     const FnOpResult result = make_result(FnOpFlashMgm, FnOpStatusFnRefused, FNErrorFailure);
     FnTextModel model;
-    fn_format_result(&result, FnResultReasonOperation, &model);
+    fn_format_result(&result, FnResultReasonOperation, &model, FnLangRu);
 
     expect_line(&model, "Отказ ФН");
     expect_line(&model, "Запросите детали командой 35h");
@@ -82,7 +82,7 @@ static void test_refused_known_code(void) {
 static void test_refused_unknown_code(void) {
     const FnOpResult result = make_result(FnOpFlashMgm, FnOpStatusFnRefused, (FNError)0x3F);
     FnTextModel model;
-    fn_format_result(&result, FnResultReasonOperation, &model);
+    fn_format_result(&result, FnResultReasonOperation, &model, FnLangRu);
 
     const FnTextSection* section = find_section(&model, FN_STR_RESULT_TITLE);
     TEST_CHECK(section_has_line(section, "Неизвестный код ответа ФН: 0x3F"));
@@ -93,7 +93,7 @@ static void test_refused_unknown_code(void) {
 static void test_no_response(void) {
     const FnOpResult result = make_result(FnOpFlashMgm, FnOpStatusNoResponse, FNOk);
     FnTextModel model;
-    fn_format_result(&result, FnResultReasonOperation, &model);
+    fn_format_result(&result, FnResultReasonOperation, &model, FnLangRu);
 
     expect_line(&model, FN_STR_NO_RESPONSE);
     expect_line(&model, FN_STR_NO_RESPONSE_HINT);
@@ -103,11 +103,11 @@ static void test_bad_frame_and_busy(void) {
     FnTextModel model;
 
     const FnOpResult bad = make_result(FnOpReadInfo, FnOpStatusBadFrame, FNOk);
-    fn_format_result(&bad, FnResultReasonOperation, &model);
+    fn_format_result(&bad, FnResultReasonOperation, &model, FnLangRu);
     expect_line(&model, FN_STR_BAD_FRAME);
 
     const FnOpResult busy = make_result(FnOpReadInfo, FnOpStatusBusy, FNOk);
-    fn_format_result(&busy, FnResultReasonOperation, &model);
+    fn_format_result(&busy, FnResultReasonOperation, &model, FnLangRu);
     expect_line(&model, FN_STR_BUSY);
 }
 
@@ -116,12 +116,12 @@ static void test_internal_error(void) {
 
     /* Чтение: порт не занят — «Не удалось занять порт 13/14». */
     const FnOpResult read = make_result(FnOpReadInfo, FnOpStatusInternalError, FNOk);
-    fn_format_result(&read, FnResultReasonOperation, &model);
+    fn_format_result(&read, FnResultReasonOperation, &model, FnLangRu);
     expect_line(&model, FN_STR_PORT_BUSY);
 
     /* Очистка МГМ: защита от отправки в не-МГМ (FR-024). */
     const FnOpResult flash = make_result(FnOpFlashMgm, FnOpStatusInternalError, FNOk);
-    fn_format_result(&flash, FnResultReasonOperation, &model);
+    fn_format_result(&flash, FnResultReasonOperation, &model, FnLangRu);
     expect_line(&model, FN_STR_NOT_MGM);
 }
 
@@ -129,15 +129,15 @@ static void test_cancelled_and_null(void) {
     FnTextModel model;
 
     const FnOpResult cancelled = make_result(FnOpReadInfo, FnOpStatusCancelled, FNOk);
-    fn_format_result(&cancelled, FnResultReasonOperation, &model);
+    fn_format_result(&cancelled, FnResultReasonOperation, &model, FnLangRu);
     TEST_CHECK_EQ_U16(model.section_count, 1);
     expect_line(&model, FN_STR_NO_DATA);
 
     /* NULL-результат и NULL-модель не должны падать. */
-    fn_format_result(NULL, FnResultReasonOperation, &model);
+    fn_format_result(NULL, FnResultReasonOperation, &model, FnLangRu);
     TEST_CHECK_EQ_U16(model.section_count, 1);
 
-    fn_format_result(&cancelled, FnResultReasonOperation, NULL);
+    fn_format_result(&cancelled, FnResultReasonOperation, NULL, FnLangRu);
     TEST_CHECK(true);
 }
 

@@ -98,7 +98,7 @@ static FnInfo make_reference_info(void) {
 static void test_reference(void) {
     const FnInfo info = make_reference_info();
     FnTextModel model;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
 
     TEST_CHECK_EQ_U16(model.section_count, 4);
     TEST_CHECK(title_is(&model.sections[0], FN_STR_SECTION_FN_STATUS));
@@ -134,7 +134,7 @@ static void test_stage1_and_stage4_without_last_doc(void) {
     info.status.current_doc_raw = 0x00;
 
     FnTextModel model;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
 
     TEST_CHECK(!model_has_prefix(&model, "Последний документ"));
     TEST_CHECK(model_has_line(&model, "Документ для ОФД:"));
@@ -144,7 +144,7 @@ static void test_stage1_and_stage4_without_last_doc(void) {
     TEST_CHECK(!model_has_line(&model, "  данные не получены"));
 
     info.status.stage = FnStageArchiveClosedFinal;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
     TEST_CHECK(!model_has_prefix(&model, "Последний документ"));
     TEST_CHECK(!model_has_line(&model, "Дата документа: нет данных"));
 }
@@ -160,7 +160,7 @@ static void test_partial_data(void) {
     info.status.warn_flags = 0;
 
     FnTextModel model;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
 
     // Блок предупреждений при нулевых флагах не выводится.
     TEST_CHECK_EQ_U16(model.section_count, 3);
@@ -186,7 +186,7 @@ static void test_unknown_doc_and_warnings(void) {
     info.status.warn_flags = FnWarnReplaceSoon | FnWarnReserved;
 
     FnTextModel model;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
 
     expect_line(&model, FN_STR_SECTION_FN_STATUS, "  Неизвестный документ (0x99)");
     expect_line(&model, FN_STR_SECTION_FN_STATUS, "  данные не получены");
@@ -196,7 +196,7 @@ static void test_unknown_doc_and_warnings(void) {
 
     // Только неизвестный бит: известных строк нет, блок остаётся.
     info.status.warn_flags = FnWarnReserved;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
     const FnTextSection* warnings = find_section(&model, FN_STR_WARNINGS);
     TEST_CHECK(warnings != NULL);
     TEST_CHECK_EQ_U16(warnings->line_count, 1);
@@ -211,7 +211,7 @@ static void test_mgm_and_ffd_values(void) {
     info.ffd.max = FnFfd1_2;
 
     FnTextModel model;
-    fn_format_info(&info, &model);
+    fn_format_info(&info, &model, FnLangRu);
 
     expect_line(&model, FN_STR_SECTION_FFD, "Текущая: Не активизирован");
     expect_line(&model, FN_STR_SECTION_FFD, "Максимальная: 1.2");
@@ -221,11 +221,11 @@ static void test_mgm_and_ffd_values(void) {
 static void test_null_arguments(void) {
     FnTextModel model;
     memset(&model, 0, sizeof(model));
-    fn_format_info(NULL, &model);
+    fn_format_info(NULL, &model, FnLangRu);
     TEST_CHECK_EQ_U16(model.section_count, 0);
 
     const FnInfo info = make_reference_info();
-    fn_format_info(&info, NULL);
+    fn_format_info(&info, NULL, FnLangRu);
     TEST_CHECK(true);
 }
 

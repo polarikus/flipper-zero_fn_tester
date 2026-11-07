@@ -35,28 +35,31 @@ static void test_dates(void) {
 }
 
 static void test_texts(void) {
-    TEST_CHECK(strcmp(fn_stage_text(FnStageReadyRegistration), "Готов к регистрации") == 0);
-    TEST_CHECK(strcmp(fn_stage_text(FnStageRegistered), "Зарегистрирован") == 0);
     TEST_CHECK(
-        strcmp(fn_stage_text(FnStageArchiveClosed), "Архив закрыт, ждет передачи в ОФД") == 0);
-    TEST_CHECK(strcmp(fn_stage_text(FnStageArchiveClosedFinal), "Архив ФН закрыт") == 0);
-    TEST_CHECK(strcmp(fn_stage_text(FnStageUnknown), "Неизвестный этап") == 0);
+        strcmp(fn_stage_text(FnStageReadyRegistration, FnLangRu), "Готов к регистрации") == 0);
+    TEST_CHECK(strcmp(fn_stage_text(FnStageRegistered, FnLangRu), "Зарегистрирован") == 0);
+    TEST_CHECK(
+        strcmp(
+            fn_stage_text(FnStageArchiveClosed, FnLangRu), "Архив закрыт, ждет передачи в ОФД") ==
+        0);
+    TEST_CHECK(strcmp(fn_stage_text(FnStageArchiveClosedFinal, FnLangRu), "Архив ФН закрыт") == 0);
+    TEST_CHECK(strcmp(fn_stage_text(FnStageUnknown, FnLangRu), "Неизвестный этап") == 0);
 
-    TEST_CHECK(strcmp(fn_ffd_text(FnFfdNone), "Не активизирован") == 0);
-    TEST_CHECK(strcmp(fn_ffd_text(FnFfd1_05), "1.05") == 0);
-    TEST_CHECK(strcmp(fn_ffd_text(FnFfd1_1), "1.1") == 0);
-    TEST_CHECK(strcmp(fn_ffd_text(FnFfd1_2), "1.2") == 0);
-    TEST_CHECK(strcmp(fn_ffd_text(FnFfdUnknown), "Неизвестно") == 0);
+    TEST_CHECK(strcmp(fn_ffd_text(FnFfdNone, FnLangRu), "Не активизирован") == 0);
+    TEST_CHECK(strcmp(fn_ffd_text(FnFfd1_05, FnLangRu), "1.05") == 0);
+    TEST_CHECK(strcmp(fn_ffd_text(FnFfd1_1, FnLangRu), "1.1") == 0);
+    TEST_CHECK(strcmp(fn_ffd_text(FnFfd1_2, FnLangRu), "1.2") == 0);
+    TEST_CHECK(strcmp(fn_ffd_text(FnFfdUnknown, FnLangRu), "Неизвестно") == 0);
 
-    TEST_CHECK(strcmp(fn_doc_text(FnDocNone), "Документа нет") == 0);
-    TEST_CHECK(strcmp(fn_doc_text(FnDocReceipt), "Кассовый чек") == 0);
-    TEST_CHECK(strcmp(fn_doc_text(FnDocUnknown), "Неизвестный документ") == 0);
+    TEST_CHECK(strcmp(fn_doc_text(FnDocNone, FnLangRu), "Документа нет") == 0);
+    TEST_CHECK(strcmp(fn_doc_text(FnDocReceipt, FnLangRu), "Кассовый чек") == 0);
+    TEST_CHECK(strcmp(fn_doc_text(FnDocUnknown, FnLangRu), "Неизвестный документ") == 0);
 
-    TEST_CHECK(fn_warn_flag_text(0x01) != NULL);
-    TEST_CHECK(fn_warn_flag_text(0x40) != NULL);
-    TEST_CHECK(fn_warn_flag_text(0x80) == NULL);
-    TEST_CHECK(fn_warn_flag_text(0x00) == NULL);
-    TEST_CHECK(fn_warn_flag_text(0x03) == NULL);
+    TEST_CHECK(fn_warn_flag_text(0x01, FnLangRu) != NULL);
+    TEST_CHECK(fn_warn_flag_text(0x40, FnLangRu) != NULL);
+    TEST_CHECK(fn_warn_flag_text(0x80, FnLangRu) == NULL);
+    TEST_CHECK(fn_warn_flag_text(0x00, FnLangRu) == NULL);
+    TEST_CHECK(fn_warn_flag_text(0x03, FnLangRu) == NULL);
 
     TEST_CHECK_EQ_U16(fn_warn_flags_unknown(0x82), 0x80);
     TEST_CHECK_EQ_U16(fn_warn_flags_unknown(0x02), 0x00);

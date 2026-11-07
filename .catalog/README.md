@@ -2,7 +2,7 @@
 
 A fiscal drive (FN) is a device that Russian law requires in every cash register. It stores receipts and sends them to the tax authorities. FN Tester connects the Flipper Zero to a fiscal drive over UART and shows the state of the drive in plain language, so you can check a drive before installing it into a cash register or diagnose a faulty one.
 
-The interface of the app is in Russian: fiscal drives are used only in Russia.
+The interface is available in English and Russian. On the first launch the app asks for the language and saves the choice on the SD card; the language can be changed later with the Language menu item. The screenshots show the English interface.
 
 # What you need
 
@@ -12,7 +12,7 @@ A fiscal drive (FN or FN-M) connected to the Flipper Zero:
 - GND and +3.3 V from the Flipper
 - USART at 115200 baud, 8 data bits, no parity
 
-The app occupies the GPIO pins while it runs and disables the expansion module detection. The USB console stays available for logs. Nothing is written to the SD card.
+The app occupies the GPIO pins while it runs and disables the expansion module detection. The USB console stays available for logs. The only thing written to the SD card is the language setting in `apps_data/fn_test/settings.txt`.
 
 # Information about the drive
 

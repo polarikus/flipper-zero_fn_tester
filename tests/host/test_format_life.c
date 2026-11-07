@@ -82,7 +82,7 @@ static FnLifeInfo make_reference_life(void) {
 static void test_reference(void) {
     const FnLifeInfo life = make_reference_life();
     FnTextModel model;
-    fn_format_life(&life, &model);
+    fn_format_life(&life, &model, FnLangRu);
 
     TEST_CHECK_EQ_U16(model.section_count, 3);
     TEST_CHECK(title_is(&model.sections[0], FN_STR_SECTION_LIFE_DATE));
@@ -107,7 +107,7 @@ static void test_days_missing(void) {
     life.has_days = false;
 
     FnTextModel model;
-    fn_format_life(&life, &model);
+    fn_format_life(&life, &model, FnLangRu);
 
     // Нулевой остаток — «нет данных», а не скрытие блока (FR-011).
     const FnTextSection* days = find_section(&model, FN_STR_SECTION_LIFE_DAYS);
@@ -140,7 +140,7 @@ static void test_days_plural(void) {
         life.days.days = cases[i].days;
 
         FnTextModel model;
-        fn_format_life(&life, &model);
+        fn_format_life(&life, &model, FnLangRu);
         expect_line(&model, FN_STR_SECTION_LIFE_DAYS, cases[i].text);
     }
 }
@@ -151,7 +151,7 @@ static void test_without_marking(void) {
     life.memory.marking_percent = 0;
 
     FnTextModel model;
-    fn_format_life(&life, &model);
+    fn_format_life(&life, &model, FnLangRu);
 
     // Строки о маркировке нет вовсе; «0 %» не подставляется (FR-028).
     TEST_CHECK(!model_has_prefix(&model, "Область уведомлений"));
@@ -165,7 +165,7 @@ static void test_memory_refused(void) {
     memset(&life.memory, 0, sizeof(life.memory));
 
     FnTextModel model;
-    fn_format_life(&life, &model);
+    fn_format_life(&life, &model, FnLangRu);
 
     // Отказ 3Dh не скрывает секции 32h/3Bh (FR-011).
     TEST_CHECK_EQ_U16(model.section_count, 3);
@@ -185,11 +185,11 @@ static void test_not_activated_and_no_date(void) {
     life.date.end_date.day = 0;
 
     FnTextModel model;
-    fn_format_life(&life, &model);
+    fn_format_life(&life, &model, FnLangRu);
     expect_line(&model, FN_STR_SECTION_LIFE_DATE, "Дата окончания: не активизирован");
 
     life.has_date = false;
-    fn_format_life(&life, &model);
+    fn_format_life(&life, &model, FnLangRu);
     expect_line(&model, FN_STR_SECTION_LIFE_DATE, "Дата окончания: нет данных");
     expect_line(&model, FN_STR_SECTION_LIFE_DATE, "Выполнено регистраций: нет данных");
     expect_line(&model, FN_STR_SECTION_LIFE_DATE, "Осталось регистраций: нет данных");
@@ -198,11 +198,11 @@ static void test_not_activated_and_no_date(void) {
 static void test_null_arguments(void) {
     FnTextModel model;
     memset(&model, 0, sizeof(model));
-    fn_format_life(NULL, &model);
+    fn_format_life(NULL, &model, FnLangRu);
     TEST_CHECK_EQ_U16(model.section_count, 0);
 
     const FnLifeInfo life = make_reference_life();
-    fn_format_life(&life, NULL);
+    fn_format_life(&life, NULL, FnLangRu);
     TEST_CHECK(true);
 }
 

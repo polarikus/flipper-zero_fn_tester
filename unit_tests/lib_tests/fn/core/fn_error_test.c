@@ -47,27 +47,27 @@ MU_TEST(catalog_complete_test) {
     for(size_t i = 0; i < COUNT_OF(known_codes); ++i) {
         const FNError code = known_codes[i];
         mu_assert(fn_error_is_known(code), "код из заголовка должен быть в каталоге");
-        const char* title = fn_error_title(code);
+        const char* title = fn_error_title(code, FnLangRu);
         mu_assert(title != NULL && title[0] != '\0', "у кода должен быть заголовок");
-        mu_assert(fn_error_hint(code) != NULL, "подсказка никогда не NULL");
+        mu_assert(fn_error_hint(code, FnLangRu) != NULL, "подсказка никогда не NULL");
     }
 
-    mu_assert_string_eq("Успешно", fn_error_title(FNOk));
-    mu_assert_string_eq("", fn_error_hint(FNOk));
+    mu_assert_string_eq("Успешно", fn_error_title(FNOk, FnLangRu));
+    mu_assert_string_eq("", fn_error_hint(FNOk, FnLangRu));
 }
 
 MU_TEST(unknown_code_test) {
     const FNError unknown[] = {(FNError)0x06, (FNError)0x3F, (FNError)0x7F};
     for(size_t i = 0; i < COUNT_OF(unknown); ++i) {
         mu_assert(!fn_error_is_known(unknown[i]), "код не должен быть известен");
-        mu_assert_string_eq("Неизвестный код ответа ФН", fn_error_title(unknown[i]));
-        mu_assert_string_eq("", fn_error_hint(unknown[i]));
+        mu_assert_string_eq("Неизвестный код ответа ФН", fn_error_title(unknown[i], FnLangRu));
+        mu_assert_string_eq("", fn_error_hint(unknown[i], FnLangRu));
     }
 }
 
 MU_TEST(non_null_test) {
-    mu_assert(fn_error_title((FNError)0x55) != NULL, "title никогда не NULL");
-    mu_assert(fn_error_hint((FNError)0x55) != NULL, "hint никогда не NULL");
+    mu_assert(fn_error_title((FNError)0x55, FnLangRu) != NULL, "title никогда не NULL");
+    mu_assert(fn_error_hint((FNError)0x55, FnLangRu) != NULL, "hint никогда не NULL");
 }
 
 MU_TEST_SUITE(fn_error_test_suite) {

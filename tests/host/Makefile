@@ -29,7 +29,8 @@ INCLUDES := \
 LIB_SRC := \
 	$(wildcard $(ROOT)/lib/fn/core/*.c) \
 	$(wildcard $(ROOT)/lib/fn/proto/*.c) \
-	$(wildcard $(ROOT)/ui/fn_format.c)
+	$(wildcard $(ROOT)/ui/fn_format.c) \
+	$(wildcard $(ROOT)/ui/fn_strings.c)
 
 # Заголовки — тоже зависимости: правка строк или констант должна пересобирать тесты.
 LIB_HEADERS := \
