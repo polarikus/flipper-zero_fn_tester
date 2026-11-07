@@ -12,7 +12,7 @@ A fiscal drive (FN or FN-M) connected to the Flipper Zero:
 - GND and +3.3 V from the Flipper
 - USART at 115200 baud, 8 data bits, no parity
 
-The app occupies the GPIO pins while it runs and disables the expansion module detection. The USB console stays available for logs. The only thing written to the SD card is the language setting in `apps_data/fn_test/settings.txt`.
+The app occupies the GPIO pins while it runs and disables the expansion module detection. The USB console stays available for logs. The only thing written to the SD card is the language setting in apps_data/fn_test/settings.txt.
 
 # Information about the drive
 
